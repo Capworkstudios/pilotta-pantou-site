@@ -46,6 +46,10 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .num{font-family:var(--f-disp);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
 .goal .num{font-size:20px;line-height:1.5}
 .team.lead .num{color:var(--good)}
+.tmA{--tcol:#e5a823}.tmB{--tcol:#4a90d9}
+.score>div.tmA,.score>div.tmB{border-top:4px solid var(--tcol)}
+.seat.tmA .nm::before,.seat.tmB .nm::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--tcol);margin-inline-end:5px}
+.tbl th.tmA,.tbl th.tmB{border-bottom:3px solid var(--tcol)}
 .contract{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;align-items:center}
 .chip{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;white-space:nowrap}
 .chip.acc{background:var(--accent);color:var(--accent-ink);border-color:transparent}
@@ -1070,6 +1074,7 @@ function toast(msg,ms){
 function nm(p){ if(typeof MP!=='undefined' && MP && MP.on && MP.names[p] && (p!==G.me || MP.host)) return MP.names[p]; return SEATS[(p-G.me+4)%4]; }
 function PT(){ return (G.me+2)%4; }
 function US(){ return G.me%2; }
+function tcls(us){ return ((us?US():1-US())===0)?'tmA':'tmB'; }
 function TL(t){ return TEAMS[t===US()?0:1]; }
 function viewS(S){
   if(US()===0) return S;
@@ -1113,6 +1118,7 @@ function cardEl(c,extra,tag){
 function renderScore(){
   var u=US(), o=1-u;
   $('#scUs').textContent=G.scores[u]; $('#scThem').textContent=G.scores[o]; $('#goal').textContent=G.target;
+  $('#tUs').classList.remove('tmA','tmB'); $('#tUs').classList.add(tcls(1)); $('#tThem').classList.remove('tmA','tmB'); $('#tThem').classList.add(tcls(0));
   $('#tUs').classList.toggle('lead',G.scores[u]>G.scores[o]); $('#tThem').classList.toggle('lead',G.scores[o]>G.scores[u]);
 }
 function avOf(p){ return (typeof MP!=='undefined' && MP && MP.on && MP.avs && MP.avs[p]) ? avSvg(MP.avs[p]) : ''; }
@@ -1123,7 +1129,7 @@ function renderSeats(){
     var tags=[]; if(G.dealer===p) tags.push('μοιράζει');
     var b=G.bidLog.filter(function(x){ return x.p===p; }).slice(-1)[0];
     if(G.trump===null && b) tags.push(b.t);
-    el.className='seat '+(r===2?'n':(r===3?'w':'e'))+(G.active===p?' active':'');
+    el.className='seat '+(r===2?'n':(r===3?'w':'e'))+(p%2===0?' tmA':' tmB')+(G.active===p?' active':'');
     var pl=pileHTML(WC[p],false), nmH='<div class="nm">'+avOf(p)+nm(p)+'</div>', bk=backsHTML(G.hands[p].length,r!==2), tg='<div class="tg">'+colSyms(esc(tags.join(' · ')))+'</div>';
     /* the pile of won tricks sits at the player's right hand */
     el.innerHTML = r===2 ? '<div class="brow">'+pl+bk+'</div>'+nmH+tg : (r===3 ? pl+bk+nmH+tg : nmH+bk+pl+tg);
@@ -1581,7 +1587,7 @@ function summaryHTML(S0){
   var row=function(l,a,c){ return '<tr><td>'+l+'</td><td>'+a+'</td><td>'+c+'</td></tr>'; };
   return '<h2>Τέλος γύρου '+G.round+'</h2><p>'+verdict+'</p>'
    + '<p>Πόντοι γύρου (μόνο από τις μπάζες):<br>Εμείς <b>'+S.raw[0]+'</b><br>Αυτοί <b>'+S.raw[1]+'</b></p>'
-   + '<table class="tbl"><thead><tr><th></th><th>Εμείς</th><th>Αυτοί</th></tr></thead><tbody>'
+   + '<table class="tbl"><thead><tr><th></th><th class="'+tcls(1)+'">Εμείς</th><th class="'+tcls(0)+'">Αυτοί</th></tr></thead><tbody>'
    + row('Πόντοι φύλλων <span class="dim">('+S.raw[0]+' / '+S.raw[1]+')</span>', r[0].cards, r[1].cards)
    + row('Προσφορά'+(G.mult>1?' ×'+G.mult:''), r[0].bid, r[1].bid)
    + row('Δηλώσεις', r[0].decl, r[1].decl)
