@@ -1,0 +1,32 @@
+{
+ "name": "Πιλόττα Παντού",
+ "short_name": "Πιλόττα Παντού",
+ "description": "Παιχνίδι πιλόττα για 4 παίκτες",
+ "lang": "el",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#e8eee7",
+ "theme_color": "#1b5a45",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
