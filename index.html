@@ -1910,10 +1910,12 @@ function acctNameOk(n){ return /^[A-Za-z0-9_Ͱ-Ͽἀ-῿]{3,14}$/.test(n); }
 /* ---------- blocked words in usernames (English, Greek, Greeklish). To add a word: put it in the right list below, in lower case.
    BAD_SUB: blocked anywhere inside the name. BAD_TOK: blocked only when it is the whole name or a whole part (parts are split by _ or digits), so innocent names are not caught. ---------- */
 var BAD_SUB_LAT=['fuck','fck','shit','cunt','bitch','whore','slut','nigger','nigga','faggot','retard','rapist','pedo','paedo','bastard','asshole','dickhead','cocksuck','motherfuck','wanker','twat','bollock','porn','penis','vagina','jizz','tranny','hitler','pussy',
-  'malak','poust','poutan','poutso','poutsa','gamw','gamiseme','gamisou','gamimen','gamoto','arxid','archid','kariol','skata','kavl','tsoula','koufala','xitler'];
-var BAD_TOK_LAT=['dick','cock','ass','anus','cum','fag','rape','sex','tits','kike','spic','chink','gook','coon','dyke','nazi','kkk','kys','mlk','kolo','kolos','mouni','muni','pipa','gamo'];
-var BAD_SUB_GR=['μαλακ','πουστ','πουταν','πουτσ','γαμησ','γαμημεν','γαμιολ','γαμωτ','γαμω','αρχιδ','καριολ','σκατ','καβλ','τσουλα','κουφαλ','πορν','χιτλερ'];
-var BAD_TOK_GR=['κωλο','κωλοσ','μουνι','πιπα','ναζι'];
+  'malak','poust','poutan','poutso','poutsa','gamw','gamiseme','gamisou','gamimen','gamoto','arxid','archid','kariol','skata','kavl','tsoula','koufala','xitler',
+  /* names that could pass for the game's staff */
+  'admin','moderator','support','staff','official','pilottapantou','diaxirist','diacheirist','ypostiri'];
+var BAD_TOK_LAT=['dick','cock','ass','anus','cum','fag','rape','sex','tits','kike','spic','chink','gook','coon','dyke','nazi','kkk','kys','mlk','kolo','kolos','mouni','muni','pipa','gamo','mod','owner','dev','system','pilotta'];
+var BAD_SUB_GR=['μαλακ','πουστ','πουταν','πουτσ','γαμησ','γαμημεν','γαμιολ','γαμωτ','γαμω','αρχιδ','καριολ','σκατ','καβλ','τσουλα','κουφαλ','πορν','χιτλερ','διαχειρισ','υποστηριξ','πιλοτταπαντου'];
+var BAD_TOK_GR=['κωλο','κωλοσ','μουνι','πιπα','ναζι','πιλοττα'];
 function pfCollapse(s){ return s.replace(/(.)\1+/g,'$1'); }
 var PF_L2G={a:'α',b:'β',e:'ε',h:'η',i:'ι',k:'κ',m:'μ',n:'ν',o:'ο',p:'ρ',t:'τ',u:'υ',v:'ν',x:'χ',y:'υ',w:'ω'};
 var PF_G2L={'α':'a','β':'b','ε':'e','η':'h','ι':'i','κ':'k','μ':'m','ν':'n','ο':'o','ρ':'p','τ':'t','υ':'u','χ':'x','ω':'w'};
