@@ -1,6 +1,7 @@
-<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1b5a45"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Πιλόττα Παντού"><style>*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0}</style></head><body>
+<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=0.25,maximum-scale=6,user-scalable=yes,viewport-fit=cover"><meta name="theme-color" content="#1b5a45"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Πιλόττα Παντού"><style>*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0}</style></head><body>
 <title>Πιλόττα Παντού</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=0.25,maximum-scale=6,user-scalable=yes,viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700;800&family=Commissioner:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one phone-width column. Header and scores, felt table with the three other players, your hand, then a single action panel. */
@@ -227,7 +228,7 @@ body.page .app{display:none}
 .stepper output{flex:1 1 auto!important}
 .mc{display:inline-flex;gap:3px;vertical-align:middle;--cw:30px;margin:2px 4px 2px 0}
 .mc .card{border-radius:5px}
-.loglist{max-height:150px;overflow-y:auto}
+.loglist{max-height:74px;overflow-y:auto;line-height:17px}.loglist div{line-height:17px}
 .coach{border-left:4px solid var(--good);background:var(--bg);border-radius:8px;padding:8px 10px;font-size:14px}
 .coach b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
 .btn.tip{box-shadow:0 0 0 2px var(--good)}
@@ -1184,9 +1185,9 @@ $('#contract').addEventListener('click',function(e){
   openSheet('<h2>Προσφορές</h2>'+(G.bidLog.length?'<div class="log">'+G.bidLog.map(function(x){ return '<div>'+esc(nm(x.p))+': '+colSyms(x.t)+'</div>'; }).join('')+'</div>':'<p>Καμία.</p>')+'<button class="btn primary" id="bClose" type="button">Κλείσιμο</button>',function(sh){ sh.querySelector('#bClose').addEventListener('click',closeSheet); });
 });
 function render(){ renderScore(); renderSeats(); renderTrick(); renderHand(); renderContract(); if(typeof mpSchedule==='function') mpSchedule(); }
-function setPanel(html,bind){ var p=$('#panel'); p.innerHTML=html; if(bind) bind(p); }
+function setPanel(html,bind){ var p=$('#panel'); p.innerHTML=html; var ll=p.querySelector('.loglist'); if(ll) ll.scrollTop=ll.scrollHeight; if(bind) bind(p); }
 function logHTML(){
-  return '<div class="log loglist">'+G.bidLog.slice(-4).map(function(x){ return '<div>'+esc(nm(x.p))+': '+colSyms(x.t)+'</div>'; }).join('')+'</div>';
+  return '<div class="log loglist">'+G.bidLog.map(function(x){ return '<div>'+esc(nm(x.p))+': '+colSyms(x.t)+'</div>'; }).join('')+'</div>';
 }
 function waitPanel(msg){ G.pubMsg=msg; if(typeof mpSchedule==='function') mpSchedule(); setPanel('<div class="status">'+esc(msg)+'</div>'+(G.trump?'':logHTML())); }
 function openSheet(html,bind){ var ov=$('#ov'), sh=$('#sheet'); sh.className='sheet'; sh.innerHTML=html; ov.hidden=false; ov.scrollTop=0; if(bind) bind(sh); var b=sh.querySelector('button'); if(b) b.focus(); }
@@ -1249,7 +1250,7 @@ function humanPlay(L){
   G.legalIds=new Set(L.map(cid)); renderHand();
   if(AUTO){
     G.legalIds=null;
-    if(G.trickNo===1 && G.needShow && !G.shown && Math.random()<0.8) G.shown=true;
+    if(G.trickNo===1 && G.needShow && !G.shown && Math.random()<0.8){ G.shown=true; G.rev[G.me]=true; if(MP.cs) MP.cs.shown=true; }
     return Promise.resolve(L[Math.floor(Math.random()*L.length)]);
   }
   G.tipId=null; G.coachMsg=null;
@@ -1277,7 +1278,7 @@ function playPanel(L){
   }
   setPanel('<div class="status">Η σειρά σου. Διάλεξε φύλλο.</div><div class="hint">'+hintFor(L)+'</div>'+cb+extra,function(p){
     var b=p.querySelector('#showD');
-    if(b) b.addEventListener('click',function(){ G.shown=true; $('#reveal').innerHTML=revealHTML(G.revealNote); playPanel(L); });
+    if(b) b.addEventListener('click',function(){ G.shown=true; G.rev[G.me]=true; if(MP.cs) MP.cs.shown=true; $('#reveal').innerHTML=revealHTML(G.revealNote); if(MP.on && MP.host) mpSchedule(); playPanel(L); });
     var out=p.querySelector('#av'), go=p.querySelector('#doAnn');
     if(go){
       [['#am5',-50],['#am1',-10],['#ap1',10],['#ap5',50]].forEach(function(d){ p.querySelector(d[0]).addEventListener('click',function(){ G.annVal=Math.max(10,Math.min(600,G.annVal+d[1])); out.textContent=G.annVal; }); });
@@ -1427,7 +1428,6 @@ function startReveal(){
   G.contest=contest(G.decl,G.trump);
   G.needShow = G.contest.winner===US() && G.decl[G.me].total>0;
   G.shown=false; G.revealNote=note; G.rev=[false,false,false,false];
-  if(MP.on && G.needShow){ G.shown=true; G.rev[G.me]=true; }
   var h=revealHTML(note), rv=$('#reveal');
   rv.innerHTML=h; rv.hidden=!h;
 }
@@ -1493,7 +1493,7 @@ async function playTricks(){
         else if(!(MP.on && MP.ctl[p]==='remote') && G.decl[p].total>0){ announceFor(p); await sleep(800); }
       }
       render();
-      if((t===1 || (t===2 && G.recalc)) && p!==G.me && G.contest && G.contest.winner===p%2 && G.decl[p].total>0 && !G.rev[p]){
+      if((t===1 || (t===2 && G.recalc)) && p!==G.me && (!(MP.on && MP.ctl[p]==='remote') || t===2) && G.contest && G.contest.winner===p%2 && G.decl[p].total>0 && !G.rev[p]){
         G.rev[p]=true; toast(nm(p)+' δείχνει τη δήλωσή του',1100);
         rv.innerHTML=revealHTML(G.revealNote); rv.hidden=false; await sleep(1000);
       }
@@ -1501,7 +1501,12 @@ async function playTricks(){
       if(p===G.me){ card = await humanPlay(L); }
       else if(MP.on && MP.ctl[p]==='remote'){
         waitPanel(nm(p)+' σκέφτεται…');
-        var rp=await mpRemoteAct(p,'play',{legal:L.map(cid)});
+        var shF=(t===1 && G.contest && G.contest.winner===p%2 && G.decl[p].total>0 && !G.rev[p]);
+        var rp=await mpRemoteAct(p,'play',{legal:L.map(cid),sh:shF?1:0});
+        if(shF){
+          if(!rp || rp.sh){ G.rev[p]=true; toast(nm(p)+' δείχνει τη δήλωσή του',1100); rv.innerHTML=revealHTML(G.revealNote); rv.hidden=false; }
+          else { G.decl[p]={melds:[],total:0}; G.forfeit=true; toast(nm(p)+' δεν έδειξε τη δήλωση. Χάνεται.',1600); }
+        }
         if(t===0){ var ra=rp ? (parseInt(rp.ann,10)||0) : 0; G.ann[p]=ra; if(ra>0) toast(nm(p)+' δηλώνει '+ra,1100); }
         card = (rp && L.filter(function(c){ return cid(c)===rp.c; })[0]) || botChoose(p,hand,L);
       }
@@ -2385,7 +2390,7 @@ $('#btnPrev').addEventListener('click',function(){
    Everything goes through a small "transport" (Firebase Realtime Database in the real game, a fake one in the tests).
    Paths: rooms/CODE/meta, seat0..seat3, pub (public state as JSON), hands/UID (that player's cards), act/SEAT (his last move). */
 var FIREBASE_CONFIG = {apiKey:"AIzaSyCCsrP7VWmuQfeFwxA_XejBf7OEXvepfFw",authDomain:"pilotta-anywhere.firebaseapp.com",databaseURL:"https://pilotta-anywhere-default-rtdb.europe-west1.firebasedatabase.app",projectId:"pilotta-anywhere",storageBucket:"pilotta-anywhere.firebasestorage.app",messagingSenderId:"180192913545",appId:"1:180192913545:web:bf9e0d476711a768d97e58"}; /* paste the firebaseConfig object of your Firebase project here */
-var MP = {on:false, host:false, code:null, uid:null, T:null, names:['','','',''], ctl:['bot','bot','bot','bot'], turns:{}, seq:0, afk:{}, rep:{}, backSeen:{}, pend:{}, nearby:false, noTimer:false, summary:null, n:0, lastJ:'', lastHand:{}, pubT:null, unsubs:[]};
+var MP = {cs:null, on:false, host:false, code:null, uid:null, T:null, names:['','','',''], ctl:['bot','bot','bot','bot'], turns:{}, seq:0, afk:{}, rep:{}, backSeen:{}, pend:{}, nearby:false, noTimer:false, summary:null, n:0, lastJ:'', lastHand:{}, pubT:null, unsubs:[]};
 var MPC = false; /* true on a player who is not the host */
 function mpBase(){ return 'rooms/'+MP.code+'/'; }
 function mpCard(id){ return {r:id.slice(0,-1), s:id.slice(-1)}; }
@@ -2520,14 +2525,19 @@ function mpApply(pub,myHand){
   G.played=new Set(S.pl||[]); G.wc=S.wc||[0,0,0,0];
   MP.el=S.el; MP.rt=S.rt; MP.ui=S.ui;
   if(S.ov===null) MP.statDone=false; else stRecord();
-  G.deckAll=newDeck(); G.needShow=false; G.shown=true;
+  G.deckAll=newDeck(); csApply();
   return S;
+}
+/* a player of an online table shows his declaration himself, on his own turn (MP.cs holds that choice while his turn lasts) */
+function csApply(){
+  if(MP.cs && MP.cs.on){ G.needShow=true; G.shown=!!MP.cs.shown; if(!G.decl) G.decl=[{melds:[],total:0},{melds:[],total:0},{melds:[],total:0},{melds:[],total:0}]; G.decl[G.me]=MP.cs.dl; G.rev=G.rev||[false,false,false,false]; }
+  else { G.needShow=false; G.shown=true; }
 }
 function mpClientShow(S){
   var rvEl=$('#reveal');
   if(S.rv && S.rv.vis){
     G.contest={winner:S.rv.w}; G.rev=S.rv.rev; G.decl=S.rv.dl; G.revealNote=S.rv.note;
-    var h=revealHTML(S.rv.note); rvEl.innerHTML=h; rvEl.hidden=!h;
+    csApply(); var h=revealHTML(S.rv.note); rvEl.innerHTML=h; rvEl.hidden=!h;
   } else { rvEl.hidden=true; rvEl.innerHTML=''; }
 }
 /* "are you still there?" overlay (25 s without a move) and the "a bot replaced you" overlay */
@@ -2586,7 +2596,10 @@ async function mpClientRun(code,seat,uid){
       else if(t.kind==='play'){
         var L=(t.legal||[]).map(mpCard); G.legalIds=new Set(t.legal||[]); renderHand();
         if(S.tn===0){ G.humanAnn=0; G.annVal=20; try{ var dm=declEval(G.hands[seat]); if(dm.melds.length) G.annVal=bestMeld(dm.melds).pts; if(AUTO) G.humanAnn=dm.total>0?G.annVal:0; }catch(e){} }
-        r=await humanPlay(L); if(r && MP.curId===t.id) send({type:'play',c:cid(r),ann:(S.tn===0?(G.humanAnn||0):0)});
+        MP.cs=null;
+        if(t.sh && S.tn===1){ try{ var dm2=declEval(G.hands[seat]); MP.cs={on:true,shown:false,dl:{melds:dm2.melds,total:dm2.total}}; csApply(); }catch(e){ MP.cs=null; } }
+        r=await humanPlay(L); var shn=(MP.cs && MP.cs.shown) ? 1 : 0; MP.cs=null; csApply();
+        if(r && MP.curId===t.id) send({type:'play',c:cid(r),ann:(S.tn===0?(G.humanAnn||0):0),sh:shn});
       }
       else if(t.kind==='anikto'){ r=await humanAnikto(t.con||{}); if(r!==null && MP.curId===t.id) send({type:'anikto',yes:r?1:0}); }
       else if(t.kind==='next'){
