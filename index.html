@@ -2129,9 +2129,9 @@ async function stLoad(){
 async function stWrite(){ var T=acctT(); await T.init(); await T.set('stats/'+ACCT.user.uid,stPayload()); if(ST.pub) await stPublish(); }
 async function stPublish(){
   var T=acctT(), u=ACCT.user.uid, nm=ACCT.user.username;
-  await T.set('lb/'+u,{u:nm,elo:ST.elo,g:ST.g,w:ST.w,tr:ST.tr,ts:Date.now()});
-  if(ST.wk) await T.set('lbw/'+ST.wk.k+'/'+u,{u:nm,d:ST.wk.d,g:ST.wk.g,w:ST.wk.w});
-  if(ST.mo) await T.set('lbm/'+ST.mo.k+'/'+u,{u:nm,d:ST.mo.d,g:ST.mo.g,w:ST.mo.w});
+  await T.set('lb/'+u,{u:nm,elo:ST.elo,tr:ST.tr,ts:Date.now()});
+  if(ST.wk) await T.set('lbw/'+ST.wk.k+'/'+u,{u:nm,d:ST.wk.d});
+  if(ST.mo) await T.set('lbm/'+ST.mo.k+'/'+u,{u:nm,d:ST.mo.d});
 }
 async function stUnpublish(){
   var T=acctT(), u=ACCT.user.uid;
@@ -2249,7 +2249,7 @@ async function lbFetch(sc,per){
   if(sc==='g'){
     var path=per==='all' ? 'lb' : (per==='week' ? 'lbw/' : 'lbm/')+pk, ch=per==='all' ? 'elo' : 'd';
     var top=await T.top(path,ch,50);
-    rows=top.map(function(r){ return {uid:r.k,u:r.u||'Παίκτης',elo:r.elo,tr:r.tr,d:r.d,g:r.g||0,w:r.w||0}; });
+    rows=top.map(function(r){ return {uid:r.k,u:r.u||'Παίκτης',elo:r.elo,tr:r.tr,d:r.d,g:0,w:0,pub:1}; });
   } else {
     var fr=(await T.get('friends/'+me))||{}, ids=Object.keys(fr).concat([me]);
     for(var i=0;i<ids.length;i++){
@@ -2265,8 +2265,8 @@ async function lbFetch(sc,per){
 }
 function lbRowHtml(i,r,per,me){
   var val=per==='all' ? String(r.elo) : ((r.d>0?'+':'')+r.d);
-  var sub=(per==='all' ? TIERS[tierOf(r.elo,r.tr)][0]+' · ' : '')+(r.g ? r.g+' παιχνίδια · '+Math.round(100*r.w/r.g)+'% νίκες' : 'δεν έχει παίξει');
-  return '<div class="fri'+(r.uid===me?' me':'')+'"><span class="rk">'+(i+1)+'</span><span class="nn"><b>'+esc(r.u)+(r.uid===me?' (εσύ)':'')+'</b><small>'+esc(sub)+'</small></span><span class="vv">'+esc(val)+'</span></div>';
+  var sub=r.pub ? (per==='all' ? TIERS[tierOf(r.elo,r.tr)][0] : '') : (per==='all' ? TIERS[tierOf(r.elo,r.tr)][0]+' · ' : '')+(r.g ? r.g+' παιχνίδια · '+Math.round(100*r.w/r.g)+'% νίκες' : 'δεν έχει παίξει');
+  return '<div class="fri'+(r.uid===me?' me':'')+'"><span class="rk">'+(i+1)+'</span><span class="nn"><b>'+esc(r.u)+(r.uid===me?' (εσύ)':'')+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span><span class="vv">'+esc(val)+'</span></div>';
 }
 function stBox(){
   if(!ST.loaded) return 'Φορτώνω τα στατιστικά σου…';
