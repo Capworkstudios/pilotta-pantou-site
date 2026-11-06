@@ -1,7 +1,7 @@
-<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=0.25,maximum-scale=6,user-scalable=yes,viewport-fit=cover"><meta name="theme-color" content="#1b5a45"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Πιλόττα Παντού"><style>*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0}</style></head><body>
+<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1b5a45"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Πιλόττα Παντού"><style>*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0}</style></head><body>
 <title>Πιλόττα Παντού</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=0.25,maximum-scale=6,user-scalable=yes,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700;800&family=Commissioner:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one phone-width column. Header and scores, felt table with the three other players, your hand, then a single action panel. */
@@ -3124,21 +3124,6 @@ async function main(){
   if(!AUTO){ render(); waitPanel('Τέλος παιχνιδιού.'); endSheet(); }
 }
 main().catch(function(e){ window.__err=String(e && e.stack || e); setPanel('<div class="status">Κάτι πήγε στραβά: '+esc(e && e.message || e)+'</div><button class="btn" type="button" onclick="location.reload()">Ξανά</button>'); });
-})();
-</script>
-<script>
-/* browser only (not the Android app): lets Chrome zoom out. Chrome only zooms out when the page is wider than the screen, so an invisible wide line is added and sideways movement is locked while the page is at normal size. */
-(function(){
-try{ var C=window.Capacitor; if(C && ((C.isNativePlatform && C.isNativePlatform()) || (C.getPlatform && C.getPlatform()!=='web'))) return; }catch(e){}
-var de=document.documentElement, vv=window.visualViewport;
-var w=document.createElement('div'); w.setAttribute('aria-hidden','true'); w.style.cssText='position:absolute;top:0;left:0;width:1600px;height:1px;visibility:hidden;pointer-events:none'; document.body.appendChild(w);
-de.style.overflowX='hidden'; document.body.style.overflowX='hidden'; de.style.overscrollBehaviorX='none';
-function sc(){ return vv ? vv.scale : 1; }
-function fix(){ if(sc()>=0.99 && sc()<=1.02 && window.scrollX>0) window.scrollTo(0,window.scrollY); }
-function upd(){ var z=sc()>1.02; de.style.touchAction=z?'auto':'pan-y pinch-zoom'; document.body.style.touchAction=de.style.touchAction; fix(); }
-if(vv){ vv.addEventListener('resize',upd); vv.addEventListener('scroll',fix); }
-window.addEventListener('scroll',fix,{passive:true});
-upd();
 })();
 </script>
 <script>
