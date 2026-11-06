@@ -3160,7 +3160,7 @@ function rtcBase(){ return mpBase()+'rtc/'; }
 function rtcPair(a,b){ return (a<b?a:b)+'_'+(a<b?b:a); }
 function rtcStart(me,hm){
   if(MP.nearby || RTC.on || !MP.T || !(window.RTCPeerConnection)) return;
-  RTC.on=true; RTC.me=me; RTC.seats=[]; RTC.err={}; RTC.hist={};
+  RTC.on=true; RTC.me=me; RTC.seats=[]; RTC.err={}; RTC.hist={}; RTC.tx={}; RTC.rx={};
   for(var q=0;q<4;q++) if(hm[q] && q!==me) RTC.seats.push(q);
   var bar=$('#vc'); if(!bar) return;
   bar.hidden=false;
@@ -3186,6 +3186,8 @@ function rtcStart(me,hm){
    ICE failing (no way to connect), the connection dropping, or connected but no audio/video arriving. */
 function rtcErr(q,where){ return function(e){ RTC.err[q]=where+': '+((e&&(e.name||e.message))||e); }; }
 function rtcHist(q,st){ var h=RTC.hist[q]=RTC.hist[q]||[]; if(h[h.length-1]!==st){ h.push(st); if(h.length>6) h.shift(); } }
+function rtcFam(addr){ addr=String(addr||''); return /\.local$/i.test(addr) ? 'local' : (addr.indexOf(':')>=0 ? 'v6' : (addr ? 'v4' : '?')); }
+function rtcCandKind(c){ var str=String((c&&(c.candidate||c))||''), f=str.split(' '), t=str.match(/ typ (\w+)/); return (t?t[1]:'?')+'.'+rtcFam(f[4]); }
 function rtcCount(a){ var m={}; a.forEach(function(x){ m[x]=(m[x]||0)+1; }); return Object.keys(m).map(function(k){ return k+'×'+m[k]; }).join(','); }
 function rtcDiag(){
   if(!RTC.on || !RTC.diagEl || !RTC.seats.length) return;
@@ -3209,7 +3211,8 @@ function rtcDiag(){
       return who+': '+((RTC.hist[q]||[pc.connectionState]).join('→'))+' · ice '+pc.iceConnectionState+' · '+path
         +' · ↑'+kb(pair&&pair.bytesSent)+' ↓'+kb(pair&&pair.bytesReceived)
         +' · video '+(vin?(vin.framesDecoded||0)+'fr':'-')+' · audio '+(ain?(ain.packetsReceived||0)+'pk':'-')
-        +' · cand L['+rtcCount(Object.keys(loc).map(function(k){ return loc[k].candidateType; }))+'] R['+rtcCount(Object.keys(rem).map(function(k){ return rem[k].candidateType; }))+']'
+        +' · used L['+rtcCount(Object.keys(loc).map(function(k){ return loc[k].candidateType+'.'+rtcFam(loc[k].address||loc[k].ip); }))+'] R['+rtcCount(Object.keys(rem).map(function(k){ return rem[k].candidateType+'.'+rtcFam(rem[k].address||rem[k].ip); }))+']'
+        +' · sent '+((RTC.tx[q]||[]).length)+' ['+rtcCount(RTC.tx[q]||[])+'] · got '+((RTC.rx[q]||[]).length)+' ['+rtcCount(RTC.rx[q]||[])+']'
         +(RTC.err[q]?' · ERR '+RTC.err[q]:'');
     }).catch(function(e){ return who+': stats error '+((e&&e.message)||e); });
   })).then(function(lines){ if(RTC.diagEl) RTC.diagEl.textContent=head+'\n'+lines.join('\n'); });
@@ -3231,11 +3234,11 @@ function rtcPeer(q){
   if(offerer){ pc.rtcTx={a:pc.addTransceiver('audio',{direction:'sendrecv'}), v:pc.addTransceiver('video',{direction:'sendrecv'})}; }
   var ms=new MediaStream(); RTC.ms[q]=ms; RTC.vids[q].srcObject=ms;
   pc.ontrack=function(e){ ms.addTrack(e.track); var p=RTC.vids[q].play(); if(p&&p.catch) p.catch(function(){}); };
-  pc.onicecandidate=function(e){ if(e.candidate) MP.T.set(base+'i'+me+'/'+(pcN++),JSON.stringify(e.candidate)); };
+  pc.onicecandidate=function(e){ if(e.candidate){ (RTC.tx[q]=RTC.tx[q]||[]).push(rtcCandKind(e.candidate)); MP.T.set(base+'i'+me+'/'+(pcN++),JSON.stringify(e.candidate)); } };
   function flush(){ remoteSet=true; pending.splice(0).forEach(function(c){ pc.addIceCandidate(c).catch(rtcErr(q,'candidate')); }); }
   RTC.unsubs.push(MP.T.on(base+'i'+q,function(v){
     if(!v) return;
-    Object.keys(v).forEach(function(k){ if(applied[k]) return; applied[k]=1; var c=JSON.parse(v[k]); if(remoteSet) pc.addIceCandidate(c).catch(rtcErr(q,'candidate')); else pending.push(c); });
+    Object.keys(v).forEach(function(k){ if(applied[k]) return; applied[k]=1; var c=JSON.parse(v[k]); (RTC.rx[q]=RTC.rx[q]||[]).push(rtcCandKind(c)); if(remoteSet) pc.addIceCandidate(c).catch(rtcErr(q,'candidate')); else pending.push(c); });
   }));
   if(offerer){
     pc.createOffer().then(function(o){ return pc.setLocalDescription(o); }).then(function(){ return MP.T.set(base+'o',{sdp:pc.localDescription.sdp,type:'offer'}); }).catch(rtcErr(q,'offer'));
