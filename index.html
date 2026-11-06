@@ -238,6 +238,18 @@ body.page .app{display:none}
 .feltrow{display:flex;gap:8px}.feltrow .btn{flex:1}
 @media (max-height:860px){.table.nopile{padding-bottom:8px}}
 .table.nopile{padding-bottom:10px}
+/* avatars in the game: they take the place of the team dot, with a ring in the team colour. On the side seats the name is
+   vertical, so avatar and name sit in a column, centred, and the avatar stays upright. Your own avatar is next to "Your cards". */
+.seat .nmw{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}
+.seat.w .nmw{flex-direction:column}
+.seat.e .nmw{flex-direction:column-reverse}
+.seat .nmw .av,.handhead .av{width:22px;height:22px;margin:0;border-radius:50%;flex:none}
+.seat .nmw .nm::before{display:none}
+.seat.tmA .nmw .av{box-shadow:0 0 0 2px var(--felt2),0 0 0 4px #e5a823}
+.seat.tmB .nmw .av{box-shadow:0 0 0 2px var(--felt2),0 0 0 4px #4a90d9}
+.handhead .av.tmA{box-shadow:0 0 0 2px #e5a823}
+.handhead .av.tmB{box-shadow:0 0 0 2px #4a90d9}
+.handhead .lbl{display:inline-flex;align-items:center;gap:6px}
 </style>
 
 <div class="app" id="app">
@@ -1146,7 +1158,7 @@ function renderSeats(){
     var b=G.bidLog.filter(function(x){ return x.p===p; }).slice(-1)[0];
     if(G.trump===null && b) tags.push(b.t);
     el.className='seat '+(r===2?'n':(r===3?'w':'e'))+(p%2===0?' tmA':' tmB')+(G.active===p?' active':'');
-    var pl=pileHTML(WC[p],false), nmH='<div class="nm">'+avOf(p)+nm(p)+'</div>', bk=backsHTML(G.hands[p].length,r!==2), tg='<div class="tg">'+colSyms(esc(tags.join(' · ')))+'</div>';
+    var pl=pileHTML(WC[p],false), av=avOf(p), nmH=av ? '<div class="nmw">'+av+'<div class="nm">'+nm(p)+'</div></div>' : '<div class="nm">'+nm(p)+'</div>', bk=backsHTML(G.hands[p].length,r!==2), tg='<div class="tg">'+colSyms(esc(tags.join(' · ')))+'</div>';
     /* the pile of won tricks sits at the player's right hand */
     el.innerHTML = r===2 ? '<div class="brow">'+pl+bk+'</div>'+nmH+tg : (r===3 ? pl+bk+nmH+tg : nmH+bk+pl+tg);
   });
@@ -1175,7 +1187,7 @@ function renderHand(){
     if(G.tipId===cid(c)) ex+=' tip';
     return cardEl(c,ex,'button').replace('<button ', L && !L.has(cid(c)) ? '<button disabled ' : '<button ');
   }).join('');
-  $('#handLbl').textContent = 'Τα φύλλα σου' + (G.dealer===G.me?' · μοιράζεις':'');
+  $('#handLbl').innerHTML = avSvg(AV).replace('class="av"','class="av '+(G.me%2===0?'tmA':'tmB')+'"') + esc('Τα φύλλα σου' + (G.dealer===G.me?' · μοιράζεις':''));
   $('#btnPrev').hidden = !G.prevTrick;
   $('#btnDecl').hidden = !$('#reveal').innerHTML.trim();
 }
