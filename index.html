@@ -234,7 +234,7 @@ body.page .app{display:none}
 .btn.tip{box-shadow:0 0 0 2px var(--good)}
 .hand .card.tip{outline:3px dashed var(--good);outline-offset:1px}
 .afkw{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px}.afkbox{background:#fff;border-radius:16px;padding:20px;max-width:340px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.4)}.afkbox h3{margin:0 0 8px;font-size:20px}.afkbox p{margin:0 0 14px}
-.zo .app{transform:translate(var(--dx,0px),var(--dy,0px))}.codebox{text-align:center}.codebox small{display:block;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}.codebox span{display:inline-block;padding:8px 22px 8px calc(22px + .25em);border:2px solid var(--accent);border-radius:14px;background:color-mix(in srgb,var(--accent) 14%,var(--surface));font-weight:800;font-size:34px;letter-spacing:.25em;font-family:var(--f-disp);user-select:all}.frl{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;max-height:42vh;overflow:auto}.fri{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.fri.me{border-width:2px;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface))}.fri .rk{flex:0 0 26px;font-weight:800;color:var(--muted);text-align:center}.fri .nn{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}.fri .nn b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fri .nn small{color:var(--muted);font-size:12px}.fri .vv{font-weight:800;font-size:17px}.fri .btn{min-height:34px;padding:4px 10px;font-size:13px}.seg{display:flex;gap:6px}.seg .btn{flex:1;padding:6px 4px;font-size:14px}.stbox{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);font-size:14px;text-align:left}.row2{display:flex;gap:10px}.row2 .btn{width:auto}.langbtn{flex:0 0 auto;white-space:nowrap}
+.codebox{text-align:center}.codebox small{display:block;font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}.codebox span{display:inline-block;padding:8px 22px 8px calc(22px + .25em);border:2px solid var(--accent);border-radius:14px;background:color-mix(in srgb,var(--accent) 14%,var(--surface));font-weight:800;font-size:34px;letter-spacing:.25em;font-family:var(--f-disp);user-select:all}.frl{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;max-height:42vh;overflow:auto}.fri{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.fri.me{border-width:2px;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface))}.fri .rk{flex:0 0 26px;font-weight:800;color:var(--muted);text-align:center}.fri .nn{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}.fri .nn b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fri .nn small{color:var(--muted);font-size:12px}.fri .vv{font-weight:800;font-size:17px}.fri .btn{min-height:34px;padding:4px 10px;font-size:13px}.seg{display:flex;gap:6px}.seg .btn{flex:1;padding:6px 4px;font-size:14px}.stbox{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);font-size:14px;text-align:left}.row2{display:flex;gap:10px}.row2 .btn{width:auto}.langbtn{flex:0 0 auto;white-space:nowrap}
 .feltrow{display:flex;gap:8px}.feltrow .btn{flex:1}
 @media (max-height:860px){.table.nopile{padding-bottom:8px}}
 .table.nopile{padding-bottom:10px}
@@ -3135,20 +3135,7 @@ var w=document.createElement('div'); w.setAttribute('aria-hidden','true'); w.sty
 de.style.overflowX='hidden'; document.body.style.overflowX='hidden'; de.style.overscrollBehaviorX='none';
 function sc(){ return vv ? vv.scale : 1; }
 function fix(){ if(sc()>=0.99 && sc()<=1.02 && window.scrollX>0) window.scrollTo(0,window.scrollY); }
-/* zoomed out: keep the game in the middle of the screen instead of the top left corner */
-function center(){
-  var dx=0, dy=0, app=document.querySelector('.app');
-  de.classList.remove('zo');
-  if(vv && app && sc()<0.99 && app.offsetWidth>0){
-    var r=app.getBoundingClientRect();
-    dx=Math.round((vv.offsetLeft+vv.width/2)-(r.left+r.width/2));
-    var h=Math.max(r.height,1); dy=(h<vv.height) ? Math.round((vv.offsetTop+vv.height/2)-(r.top+h/2)) : 0;
-    if(dy<0) dy=0;
-    if(dx<0 || dx>vv.width || dy>vv.height){ dx=0; dy=0; }
-  }
-  de.style.setProperty('--dx',dx+'px'); de.style.setProperty('--dy',dy+'px'); if(dx||dy) de.classList.add('zo');
-}
-function upd(){ var z=sc()>1.02; de.style.touchAction=z?'auto':'pan-y pinch-zoom'; document.body.style.touchAction=de.style.touchAction; fix(); center(); }
+function upd(){ var z=sc()>1.02; de.style.touchAction=z?'auto':'pan-y pinch-zoom'; document.body.style.touchAction=de.style.touchAction; fix(); }
 if(vv){ vv.addEventListener('resize',upd); vv.addEventListener('scroll',fix); }
 window.addEventListener('scroll',fix,{passive:true});
 upd();
