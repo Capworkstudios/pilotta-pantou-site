@@ -1331,9 +1331,9 @@ function fbLog(rec){
     var T=(MP.on && MP.T) ? MP.T : LOGT; if(!T) return;
     var ready=(T===MP.T) ? Promise.resolve() : (LOGP=LOGP||T.init());
     var data=JSON.parse(JSON.stringify(rec));
-    var B=Math.floor(Date.now()/21600000); /* 6-hour buckets: a bucket older than 48 hours is deleted */
+    var B=Math.floor(Date.now()/21600000); /* 6-hour buckets: a bucket older than 15 days (60 buckets) is deleted */
     ready.then(function(){
-      if(!LOGC){ LOGC=true; for(var k=B-8;k>=B-60;k--) T.remove('log/'+k); }
+      if(!LOGC){ LOGC=true; for(var k=B-61;k>=B-120;k--) T.remove('log/'+k); }
       return T.set('log/'+B+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,7),data);
     }).catch(function(){ LOGP=null; });
   }catch(e){}
