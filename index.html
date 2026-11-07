@@ -2181,10 +2181,13 @@ function showEmotes(back){
 /* ===== accounts (email + password, unique username). Master switch: nothing of this shows while LOGIN_ON is false. ===== */
 /* test switch for one device only: open the site with ?login=1 to turn the account features on, ?login=0 to turn them off again */
 var LOGIN_DEV=false; try{ var _q=/[?&]login=([01])/.exec(location.search); if(_q) localStorage.setItem('pil.login',_q[1]); LOGIN_DEV=localStorage.getItem('pil.login')==='1'; }catch(e){}
-var LOGIN_ON=(typeof window.__LOGIN==='boolean') ? window.__LOGIN : LOGIN_DEV;
+/* accounts are open to everybody (go live 7 Nov 2026). Set LOGIN_LIVE to false to hide them again; then ?login=1 or the hidden switch turn them on for testing */
+var LOGIN_LIVE=true;
+var LOGIN_ON=(typeof window.__LOGIN==='boolean') ? window.__LOGIN : (LOGIN_LIVE || LOGIN_DEV);
 /* hidden test switch (the APK has no address bar for ?login=1): 5 quick taps (within 3 s) on "by Capwork Studios"
    in the main menu flip localStorage 'pil.login' between '1' and '0' and reload the page. Only in the app (the site uses ?login=1). */
 (function(){
+  if(LOGIN_LIVE) return;
   try{ var C=window.Capacitor; if(!(C && C.isNativePlatform && C.isNativePlatform())) return; }catch(e){ return; }
   var taps=[];
   document.addEventListener('click',function(e){
