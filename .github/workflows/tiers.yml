@@ -19,6 +19,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install --quiet firebase-admin==6.5.0
+      - name: Pilotta Plus from Stripe payments
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
+        run: python3 .github/stripe_job.py
       - name: Limits, categories, inactivity
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
