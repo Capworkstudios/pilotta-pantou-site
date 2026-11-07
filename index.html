@@ -2194,7 +2194,7 @@ function plusApply(){
 }
 /* Pilotta Plus: a one-time payment (from 2.99 €) through Stripe Payment Links. The link carries the account (client_reference_id = uid);
    the hourly job reads the paid sessions and writes users/UID/plus. Empty links = payments not open yet */
-var PAY={p299:'',p499:'',open:'',site:'https://capworkstudios.github.io/pilotta-pantou-site/'};
+var PAY={p299:'',p499:'',open:'',site:'https://pilottapantou.com/'};
 function payOpen(){ return !!(PAY.p299 && PAY.p499 && PAY.open); }
 function showPlus(){
   if(payOpen()) mpNotice('Pilotta Plus','Αυτό είναι μέρος του Pilotta Plus, με μία πληρωμή από 2,99 €.','Δες το Plus',function(){ showSupport(closeSheet); });
