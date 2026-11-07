@@ -2814,6 +2814,8 @@ async function stLoad(){
       });
     }
     devWatch(T,uid); onlineStart();
+    /* the username must point to this account (friend requests find players through usernames/NAME); put it back if it went missing */
+    if(pr.username){ var unk=acctKey(pr.username); T.get('usernames/'+unk).then(function(cur){ if(!cur) return T.claim('usernames/'+unk,uid); }).catch(function(){}); }
     ACCT.bd=pr.bd||'tier'; ACCT.badges=(await T.get('users/'+uid+'/badges').catch(function(){ return null; }))||{};
     if(!ACCT.seenOk){
       ACCT.seenOk=true; T.set('users/'+uid+'/seen',Date.now()).catch(function(){});
