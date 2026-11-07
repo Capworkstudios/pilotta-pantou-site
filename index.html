@@ -433,7 +433,10 @@ function avSvg(id,bd){ var a=AVS[id]; if(typeof bd==='number') bd=bd>=0?{b:'tier
 /* badges. A badge is {b:'tier',t:category} (the badge of the rating category) or {b:id} for a special badge.
    Special badges are given only by the server (users/UID/badges, the app cannot write there), e.g. a tournament winner:
    BADGES.tn1={n:'Νο1 τουρνουά', body:function(){ return '...svg 24x24...'; }} */
-var BADGES={};
+var BADGES={
+  /* Pilotta Plus: every Plus account has it (purple medal, a diamond, gold rim) */
+  plus:{n:'Pilotta Plus',body:function(){ var g='pbg_'+(++TBN); return '<defs><linearGradient id="'+g+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f6ff0"/><stop offset="1" stop-color="#4a2aa8"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#'+g+')" stroke="#f3cf55" stroke-width="1.6"/><path d="M7 9.5l2.5-3h5l2.5 3-5 7.5z" fill="#e9e3ff" stroke="#fff" stroke-width=".6"/><path d="M7 9.5h10M9.5 6.5L12 17M14.5 6.5L12 17" stroke="#8f6ff0" stroke-width=".6" fill="none"/>'; }}
+};
 function badgeBody(d){
   if(!d) return '';
   if(d.b!=='tier'){ var B=BADGES[d.b]; return B ? B.body() : ''; }
@@ -2526,8 +2529,9 @@ function showPlayer(info,back){
     var t=typeof pr.tr==='number' ? pr.tr : t0;
     var x={name:pr.username||base.name, av:pr.av||base.av, t:t, badges:[], st:'', loading:false};
     if(t>=0) x.badges.push({b:'tier',t:t});
-    Object.keys(bs).forEach(function(k){ if(BADGES[k]) x.badges.push({b:k}); });
-    x.bd=(pr.bd && pr.bd!=='tier' && BADGES[pr.bd] && bs[pr.bd]) ? {b:pr.bd} : (t>=0 ? {b:'tier',t:t} : null);
+    if(pr.pl) x.badges.push({b:'plus'});
+    Object.keys(bs).forEach(function(k){ if(BADGES[k] && k!=='plus') x.badges.push({b:k}); });
+    x.bd=(pr.bd==='plus' && pr.pl) ? {b:'plus'} : (pr.bd && pr.bd!=='tier' && BADGES[pr.bd] && bs[pr.bd]) ? {b:pr.bd} : (t>=0 ? {b:'tier',t:t} : null);
     if(info.uid===ACCT.user.uid) x.st=stLine();
     else if(await T.get('friends/'+ACCT.user.uid+'/'+info.uid).catch(function(){ return null; })){ x.st=frStat(await T.get('stats/'+info.uid).catch(function(){ return null; })); }
     if(tok===PPV && $('#ppBk')) draw(x);
@@ -2565,6 +2569,7 @@ function showBadges(back){
   var draw=function(){
     var cur=myBadgeDesc(), t=myTier(), L=[];
     if(t>=0) L.push({b:'tier',t:t});
+    if(hasPlus()) L.push({b:'plus'});
     Object.keys(ACCT.badges||{}).forEach(function(k){ if(BADGES[k]) L.push({b:k}); });
     var h=L.map(function(d){ var on=cur && cur.b===d.b; return '<button class="btn big bdb'+(on?' primary':'')+'" data-bd="'+esc(d.b)+'" type="button">'+badgeSvg(d)+'<span>'+esc(d.b==='tier' ? 'Κατηγορία: '+badgeName(d) : badgeName(d))+(on?'<small>Φαίνεται δίπλα στο avatar σου</small>':'')+'</span></button>'; }).join('');
     openSheet('<h2>Σήματα</h2><p class="hint">Διάλεξε ποιο σήμα φαίνεται δίπλα στο avatar σου. Όταν κάποιος ανοίξει το προφίλ σου, βλέπει όλα τα σήματά σου.</p>'
@@ -2657,7 +2662,7 @@ function myTier(){
 function myBadgeDesc(){
   if(!(LOGIN_ON && loggedIn())) return null;
   var c=myBCache(), t=myTier(), b=ACCT.bd || (c && c.b) || 'tier';
-  if(b!=='tier' && (!BADGES[b] || (ACCT.badges && !ACCT.badges[b]))) b='tier';
+  if(b==='plus' ? !hasPlus() : (b!=='tier' && (!BADGES[b] || (ACCT.badges && !ACCT.badges[b])))) b='tier';
   try{ localStorage.setItem('pil.myb',JSON.stringify({u:ACCT.user.uid,b:b,t:t})); }catch(e){}
   return (b==='tier' && t<0) ? null : (b==='tier' ? {b:'tier',t:t} : {b:b});
 }
@@ -2680,6 +2685,8 @@ async function stLoad(){
       if(hb){ await T.remove('users/'+uid+'/hib').catch(function(){}); if(ST.g>0) stPublish().catch(function(){}); }
     }
     var mt=myTier(); if(pr.username && pr.tr!==mt) T.set('users/'+uid+'/profile/tr',mt).catch(function(){});
+    if(pr.username && !!pr.pl!==ACCT.plus) T.set('users/'+uid+'/profile/pl',ACCT.plus?true:null).catch(function(){});
+    if(pr.username && pr.bd==='plus' && !ACCT.plus){ ACCT.bd='tier'; T.set('users/'+uid+'/profile/bd','tier').catch(function(){}); }
     myBadgeDesc(); havRefresh();
   }catch(e){}
   return ST;
