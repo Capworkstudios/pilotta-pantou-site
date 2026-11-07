@@ -98,7 +98,7 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .pile i{position:absolute;left:0;width:30px;height:42px;border-radius:4px;border:1px solid rgba(233,243,236,.7);box-shadow:0 1px 1px rgba(0,0,0,.35)}
 .pile b{position:absolute;right:-2px;bottom:-4px;font-size:10px;line-height:1;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:1px 4px;font-weight:700}
 .brow{display:flex;align-items:center;justify-content:center;gap:6px}
-.av{display:inline-block;width:20px;height:20px;vertical-align:-5px;margin-right:4px;flex:none}
+.av{display:inline-block;width:20px;height:20px;vertical-align:-5px;margin-right:4px;flex:none;overflow:visible}
 .seat.w .av,.seat.e .av{margin:0 0 4px}
 .avg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .avg .btn{padding:6px;display:flex;justify-content:center}
@@ -375,7 +375,16 @@ var AVS={h:['#f6e4e1','<text x="20" y="28" text-anchor="middle" font-size="24" f
 var AV='crown'; try{ AV=localStorage.getItem('pil.av')||'crown'; }catch(e){}
 if(!AVS[AV]) AV='crown';
 function myAv(){ return AV; }
-function avSvg(id){ var a=AVS[id]; return a ? '<svg class="av" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="'+a[0]+'" stroke="rgba(0,0,0,.25)"/>'+a[1]+'</svg>' : ''; }
+function avSvg(id,tier){ var a=AVS[id]; return a ? '<svg class="av" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="'+a[0]+'" stroke="rgba(0,0,0,.25)"/>'+a[1]+(tier>=0?tierBadge(tier):'')+'</svg>' : ''; }
+/* the badge of the rating category, a small medal at the bottom right of the avatar: copper 1 card, silver 2, gold 3, emerald 3 and a star, ruby K Q (the pilotta) and a star */
+function tierBadge(t){
+  var card=function(x,y,r){ return '<rect x="'+x+'" y="'+y+'" width="7" height="10" rx="1.4" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".6" transform="rotate('+r+' 12 15)"/>'; };
+  var star=function(y){ return '<path transform="translate(0 '+y+')" d="M12 2.2l1.1 2.3 2.5.3-1.8 1.7.5 2.5-2.3-1.2-2.3 1.2.5-2.5-1.8-1.7 2.5-.3z" fill="#f3cf55" stroke="#7a5a00" stroke-width=".4"/>'; };
+  var C=[['#d08a52','#8a4f22','#fff'],['#d9e0e6','#8c99a5','#fff'],['#f3cf55','#b8860b','#fff'],['#2fae7a','#0e5c3c','#f3cf55'],['#b43a6e','#5a0f33','#f3cf55']][t];
+  var ins=[card(8.5,7,0), card(6.5,7.5,-14)+card(10.5,7,12), card(4.8,8,-22)+card(8.5,6.5,0)+card(12.2,8,22), card(4.8,8.5,-22)+card(8.5,7,0)+card(12.2,8.5,22)+star(0),
+    '<text x="7.6" y="16.4" font-family="Georgia,serif" font-weight="700" font-size="9" fill="#f3cf55" text-anchor="middle">K</text><text x="16.4" y="16.4" font-family="Georgia,serif" font-weight="700" font-size="9" fill="#f3cf55" text-anchor="middle">Q</text>'+star(.8)][t];
+  return '<svg x="22" y="23" width="23" height="23" viewBox="0 0 24 24" overflow="visible"><defs><linearGradient id="tbg'+t+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+C[0]+'"/><stop offset="1" stop-color="'+C[1]+'"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#tbg'+t+')" stroke="'+C[2]+'" stroke-width="1.6"/>'+ins+'</svg>';
+}
 /* emotes: ready-made reactions, 5 of them in the quick bar, which the player chooses from the library */
 var EMOS={thumb:['👍','Μπράβο'],wow:['😮','Ωπ!'],laugh:['😂','Χα χα'],pray:['🙏','Παρακαλώ'],hurry:['⏱️','Βιάσου'],fire:['🔥','Φωτιά!'],clap:['👏','Μπράβο!'],oof:['😅','Ουφ'],cool:['😎','Εύκολο'],think:['🤔','Χμμ'],heart:['❤️','Ευχαριστώ'],go:['💪','Πάμε!']};
 var EMO_DEF=['thumb','wow','laugh','hurry','fire'];
@@ -1252,7 +1261,7 @@ function renderScore(){
   $('#tUs').classList.remove('tmA','tmB'); $('#tUs').classList.add(tcls(1)); $('#tThem').classList.remove('tmA','tmB'); $('#tThem').classList.add(tcls(0));
   $('#tUs').classList.toggle('lead',G.scores[u]>G.scores[o]); $('#tThem').classList.toggle('lead',G.scores[o]>G.scores[u]);
 }
-function avOf(p){ return (typeof MP!=='undefined' && MP && MP.on && MP.avs && MP.avs[p]) ? avSvg(MP.avs[p]) : ''; }
+function avOf(p){ return (typeof MP!=='undefined' && MP && MP.on && MP.avs && MP.avs[p]) ? avSvg(MP.avs[p],seatTier(p)) : ''; }
 function renderSeats(){
   var WC=winCounts(); $('#pile0').innerHTML=pileHTML(WC[G.me],true); (function(){ var tb=document.querySelector('.table'); if(tb) tb.classList.toggle('nopile',!WC[G.me]); })();
   [1,2,3].forEach(function(r){
@@ -1290,7 +1299,7 @@ function renderHand(){
     if(G.tipId===cid(c)) ex+=' tip';
     return cardEl(c,ex,'button').replace('<button ', L && !L.has(cid(c)) ? '<button disabled ' : '<button ');
   }).join('');
-  $('#handLbl').innerHTML = avSvg(AV).replace('class="av"','class="av '+(G.me%2===0?'tmA':'tmB')+'"') + esc('Τα φύλλα σου' + (G.dealer===G.me?' · μοιράζεις':''));
+  $('#handLbl').innerHTML = avSvg(AV,myTier()).replace('class="av"','class="av '+(G.me%2===0?'tmA':'tmB')+'"') + esc('Τα φύλλα σου' + (G.dealer===G.me?' · μοιράζεις':''));
   $('#btnPrev').hidden = !G.prevTrick;
   $('#btnDecl').hidden = !$('#reveal').innerHTML.trim();
 }
@@ -2035,7 +2044,7 @@ function homeHTML(inGame,canResume){
    +'<button class="btn'+(r?'':' primary')+' big" id="hNew" type="button">Νέο παιχνίδι</button>'
    +'<button class="btn big" id="hTut" type="button">Πώς παίζεται (οδηγός)</button>'
    +'<button class="btn big" id="hRules" type="button">Κανόνες</button>'
-   +(LOGIN_ON?'<button class="btn big" id="hAcct" type="button">'+(loggedIn()?avSvg(AV).replace('class="av"','class="av" style="width:24px;height:24px;margin-right:8px"')+esc(ACCT.user.username):'Σύνδεση / Λογαριασμός')+'</button>':'')
+   +(LOGIN_ON?'<button class="btn big" id="hAcct" type="button">'+(loggedIn()?avSvg(AV,myTier()).replace('class="av"','class="av" style="width:24px;height:24px;margin-right:8px"')+esc(ACCT.user.username):'Σύνδεση / Λογαριασμός')+'</button>':'')
    +(LOGIN_ON&&loggedIn()?'<div class="row2"><button class="btn big" id="hFr" type="button" style="flex:1">Φίλοι</button><button class="btn big" id="hLb" type="button" style="flex:1">Κατάταξη</button></div>':'')
    +'<button class="btn big" id="hLook" type="button">'+avSvg(AV).replace('class="av"','class="av" style="width:24px;height:24px;margin-right:8px"')+'Εμφάνιση</button>'
    +'<div class="row2"><button class="btn big" id="hSet" type="button" style="flex:1">Ρυθμίσεις</button>'
@@ -2401,7 +2410,7 @@ function showPrivacy(back){
 }
 function showProfile(back){
   var u=ACCT.user; if(!u){ showAuth({back:back,done:function(){ showProfile(back); }}); return; }
-  openSheet('<h2>'+avSvg(AV).replace('class="av"','class="av" style="width:30px;height:30px;vertical-align:-8px"')+esc(u.username)+'</h2><p class="hint">'+esc(u.email)+'</p><p class="hint" id="pSt">'+stLine()+'</p>'
+  openSheet('<h2>'+avSvg(AV,myTier()).replace('class="av"','class="av" style="width:30px;height:30px;vertical-align:-8px;margin-right:10px"')+esc(u.username)+'</h2><p class="hint">'+esc(u.email)+'</p><p class="hint" id="pSt">'+stLine()+'</p>'
     +'<div class="stack"><button class="btn big" id="pAv" type="button">Avatar</button><button class="btn big" id="pOut" type="button">Αποσύνδεση</button>'
     +'<button class="btn" id="pPv" type="button">Δήλωση απορρήτου</button><button class="btn" id="pDel" type="button" style="color:var(--red)">Διαγραφή λογαριασμού</button><button class="btn" id="pBk" type="button">Πίσω</button></div>',function(sh){
     var again=function(){ showProfile(back); };
@@ -2440,6 +2449,9 @@ function moKey(){ var d=nowD(), m=d.getUTCMonth()+1; return d.getUTCFullYear()+'
 /* a player keeps his category until he falls TIER_MARGIN points under its limit */
 function tierOf(elo,held){ var t=held||0; while(t+1<TIERS.length && elo>=TIERS[t+1][1]) t++; while(t>0 && elo<TIERS[t][1]-TIER_MARGIN) t--; return t; }
 function myRating(){ return (LOGIN_ON && loggedIn()) ? ST.elo : 0; }
+/* category shown as a badge: mine when I am signed in, the others' from the rating they brought to the table (0 = no account, no badge) */
+function myTier(){ return (LOGIN_ON && loggedIn() && ST.loaded) ? tierOf(ST.elo,ST.tr) : -1; }
+function seatTier(p){ if(typeof MP==='undefined' || !MP || !MP.on) return -1; if(p===G.me) return myTier(); var r=MP.rt && MP.rt[p]; return r>0 ? tierOf(r) : -1; }
 function stPayload(){ return {elo:ST.elo,g:ST.g,w:ST.w,tr:ST.tr,pub:true,wk:ST.wk||null,mo:ST.mo||null,ts:Date.now()}; }
 async function stLoad(){
   if(!LOGIN_ON || !loggedIn()) return ST;
