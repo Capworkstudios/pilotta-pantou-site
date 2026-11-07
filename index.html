@@ -2201,6 +2201,8 @@ function showPlus(){
   else mpNotice('Pilotta Plus','Αυτό είναι μέρος του Pilotta Plus. Το Plus έρχεται σύντομα.','OK',function(){});
 }
 /* opens an outside page in a new tab (on the phone: the browser); only if that is blocked, in this page */
+/* the privacy page of the web site, in the app's language; without internet the same text opens inside the app */
+function privOpen(back){ if(navigator.onLine===false){ showPrivacy(back); return; } extOpen(PAY.site+'privacy.html'+(LANGEN?'#en':'#el')); }
 function extOpen(url){ try{ var w=window.open(url,'_blank'); if(w){ try{ w.opener=null; }catch(e){} } else location.href=url; }catch(e){ location.href=url; } }
 /* «Υποστήριξέ μας»: 2.99 €, 4.99 € or any amount. 2.99 € or more gives Plus to the signed-in account (the job checks the amount); less is a plain donation */
 function showSupport(back){
@@ -2614,7 +2616,7 @@ function showMe(back){
     +'<button class="btn big" id="mAv" type="button">Avatar</button><button class="btn big" id="mBd" type="button">Σήματα</button><button class="btn big" id="mPlus" type="button">Pilotta Plus · Υποστήριξέ μας</button>'
     +(LOGIN_ON ? '<button class="btn big" id="mIn" type="button">Σύνδεση / Λογαριασμός</button>' : '')
     +'<button class="btn" id="mPv" type="button">Δήλωση απορρήτου</button><button class="btn" id="mBk" type="button">Πίσω</button></div>',function(sh){
-    sh.querySelector('#mPv').addEventListener('click',function(){ showPrivacy(again); });
+    sh.querySelector('#mPv').addEventListener('click',function(){ privOpen(again); });
     sh.querySelector('#mAv').addEventListener('click',function(){ showAvatars(again); });
     sh.querySelector('#mBd').addEventListener('click',function(){ showBadges(again); });
     sh.querySelector('#mPlus').addEventListener('click',function(){ showSupport(again); });
@@ -2673,7 +2675,7 @@ function showProfile(back){
     sh.querySelector('#pAv').addEventListener('click',function(){ showAvatars(again); });
     sh.querySelector('#pBd').addEventListener('click',function(){ showBadges(again); });
     sh.querySelector('#pPlus').addEventListener('click',function(){ showSupport(again); });
-    sh.querySelector('#pPv').addEventListener('click',function(){ showPrivacy(again); });
+    sh.querySelector('#pPv').addEventListener('click',function(){ privOpen(again); });
     sh.querySelector('#pOut').addEventListener('click',function(){ acctSignOut().then(back); });
     sh.querySelector('#pDel').addEventListener('click',function(){ showDelete(again,back); });
   });
