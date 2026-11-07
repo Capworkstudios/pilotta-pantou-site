@@ -95,6 +95,16 @@ root.update(upd)
 print('accounts %d, active with rated games %d, limits (top50/25/10/3) %s, categories changed %d'
       % (accounts, n, cuts, len(upd) - 1))
 
+# chat: messages older than 7 days are deleted (once a day, at 03:xx UTC, or on a run started by hand)
+if time.gmtime().tm_hour == 3 or os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
+    cut, old_n = now - 7 * DAY, 0
+    for cid in (db.reference('chats').get(shallow=True) or {}):
+        old = db.reference('chats/%s/m' % cid).order_by_child('ts').end_at(cut).get() or {}
+        if old:
+            db.reference('chats/%s/m' % cid).update({k: None for k in old})
+            old_n += len(old)
+    print('chat messages older than 7 days deleted: %d' % old_n)
+
 # 2. inactivity
 print('to hibernate %d, to delete %d, leftovers of deleted accounts %d (usernames %d)%s'
       % (len(hib_new), len(to_del), len(orphans), len(orphan_names), '' if LIVE else ' (test mode: nothing changed)'))
