@@ -120,7 +120,8 @@ for uid, name in to_del[:MAX_DEL]:
         auth.delete_user(uid)
     except auth.UserNotFoundError:
         pass
-    rm = {'users/' + uid: None, 'stats/' + uid: None, 'lb/' + uid: None, 'friends/' + uid: None, 'friendReq/' + uid: None}
+    rm = {'users/' + uid: None, 'stats/' + uid: None, 'lb/' + uid: None, 'friends/' + uid: None, 'friendReq/' + uid: None,
+          'pres/' + uid: None, 'inv/' + uid: None}
     if name:
         rm['usernames/' + key(name)] = None
     for f in (db.reference('friends/' + uid).get(shallow=True) or {}):
