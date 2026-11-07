@@ -829,6 +829,13 @@ function botPick(p,hand,L){
     var remTs=remaining(p).filter(function(x){ return x.s===tr; });
     var oppPoss=[(p+1)%4,(p+3)%4].filter(function(q){ return !(G.void[q] && G.void[q][tr]); });
     var drawT = remT>0 && oppPoss.length>0 && !(oppPoss.length===1 && remT<=1) && !(remT<=2 && remTs.every(function(x){ return cpts(x,tr)===0; }));
+    /* my partner threw an Ace on a trump trick: first all the opponents' trumps come out, then I play that suit to him */
+    if(declarer && G.aceSig && G.aceSig.p===partner){
+      var oppT=remT>0 && oppPoss.length>0;
+      if(oppT && trumps.length) return masterT.length ? maxBy(masterT,tStr) : minBy(trumps,tStr);
+      var sg=hand.filter(function(c){ return c.s===G.aceSig.s; });
+      if(!oppT && sg.length) return minBy(sg,pStr);
+    }
     if(declarer && trumps.length && drawT){
       if(masterT.length) return maxBy(masterT,tStr);
       /* our trumps: lead a low one to pull the opponents' trumps out, but not the 9 while we hold other trumps */
@@ -1618,6 +1625,8 @@ async function playTricks(){
       }
       if(G.trick.length && card.s!==G.trick[0].c.s) G.void[p][G.trick[0].c.s]=true;
       if(G.trick.length && card.s!==G.trick[0].c.s && card.s!==G.trump){ (G.disc[p][card.s]=G.disc[p][card.s]||[]).push(card); }
+      /* our trumps: a trump is led, I have none and throw the Ace of a suit. It means: I take all the tricks of that suit. The partner pulls out the opponents' trumps and then plays that suit to me */
+      if(G.trick.length && G.trick[0].c.s===G.trump && card.s!==G.trump && card.r==='A' && G.bid && (G.bid.p%2)===(p%2)) G.aceSig={p:p,s:card.s};
       /* a 10 or an Ace thrown under an opponent's winning card is a singleton: he is probably out of that suit now */
       if(G.trick.length && card.s===G.trick[0].c.s && card.s!==G.trump && (card.r==='10' || card.r==='A') && (trickWinner(G.trick,G.trump)%2)!==(p%2)) G.pvoid[p][card.s]=true;
       G.hands[p]=hand.filter(function(c){ return cid(c)!==cid(card); });
@@ -1729,7 +1738,7 @@ async function mpRoundEnd(S){
 }
 async function playRound(){
   G.round++;
-  G.trump=null; G.bid=null; G.mult=1; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
+  G.trump=null; G.bid=null; G.mult=1; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.aceSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
   $('#reveal').hidden=true; $('#reveal').innerHTML='';
   var d=shuffle(newDeck());
   for(var p=0;p<4;p++){ G.hands[p]=d.slice(p*8,p*8+8); sortHand(G.hands[p],null); }
