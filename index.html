@@ -43,8 +43,14 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .btn[data-plock]{position:relative}
 .btn[data-plock]::after{content:'';position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#e5a823 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4' y='7' width='8' height='6' rx='1.2' fill='%2314221b'/%3E%3Cpath d='M5.6 7V5.6a2.4 2.4 0 0 1 4.8 0V7' fill='none' stroke='%2314221b' stroke-width='1.4'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 1px 2px rgba(0,0,0,.3)}
 /* my avatar at the top right of the main menu; badges */
-.hav{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:14px;z-index:6;display:inline-flex;align-items:center;gap:8px;max-width:60vw;padding:4px 6px 4px 4px;border:0;background:none;color:var(--ink);font:600 15px var(--f-body);cursor:pointer}
+.hav{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:14px;z-index:6;display:inline-flex;align-items:center;gap:8px;max-width:60vw;padding:4px 6px 4px 4px;border:0;background:none;color:var(--ink);font:600 15px var(--f-body);cursor:pointer}
 .hav .av{width:40px;height:40px;margin:0;flex:none}
+/* Pilotta Plus at the bottom right of the main menu */
+.hplus{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom,0px));right:14px;z-index:6;display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 14px var(--f-body);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.hplus .bdg{width:28px;height:28px}
+.ov.page .sheet.home,.sheet.home{padding-bottom:76px}
+/* short screens: no room for a floating button, it goes under the menu, on the right */
+@media (max-height:720px){.hplus{position:static;align-self:flex-end;margin-top:2px;box-shadow:none}.ov.page .sheet.home,.sheet.home{padding-bottom:16px}}
 .hav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pav{cursor:pointer;display:inline-flex}
 .bdg{width:48px;height:48px;flex:none}
@@ -2128,7 +2134,8 @@ function homeHTML(inGame,canResume){
    +'<button class="btn big" id="hLook" type="button">Εμφάνιση</button>'
    +'<div class="row2"><button class="btn big" id="hSet" type="button" style="flex:1">Ρυθμίσεις</button>'
    +'<button class="btn big langbtn" id="hLang" type="button" aria-label="Language">🌐 '+(LANGEN?'Ελληνικά':'English')+'</button></div></div>'
-   +'<button class="hav" id="hAv" type="button">'+havHTML()+'</button>';
+   +'<button class="hav" id="hAv" type="button">'+havHTML()+'</button>'
+   +'<button class="hplus" id="hPlus" type="button">'+badgeSvg({b:'plus'})+'<span>Pilotta Plus</span></button>';
 }
 /* main menu: new game, tutorial, rules, settings (and a resume button when a game is saved or running) */
 function showHome(inGame,canResume,onResume,onNew){
@@ -2144,6 +2151,7 @@ function showHome(inGame,canResume,onResume,onNew){
     var hf=sh.querySelector('#hFr'); if(hf){ hf.addEventListener('click',function(){ showFr(again); }); frCount().then(function(n){ if(n>0 && hf.isConnected) hf.textContent='Φίλοι ('+n+')'; }).catch(function(){}); }
     var hl=sh.querySelector('#hLb'); if(hl) hl.addEventListener('click',function(){ if(LB_OPEN) showLb(again); else showSoon('Κατάταξη','Έρχεται σύντομα.',again); });
     sh.querySelector('#hAv').addEventListener('click',function(){ showMe(again); });
+    sh.querySelector('#hPlus').addEventListener('click',function(){ showSupport(again); });
     sh.querySelector('#hSet').addEventListener('click',function(){ showSettings(again); });
     sh.querySelector('#hLook').addEventListener('click',function(){ showLook(again); });
     sh.querySelector('#hLang').addEventListener('click',function(){ try{ localStorage.setItem('pil.lang',LANGEN?'gr':'en'); }catch(e){} location.reload(); });
