@@ -1,0 +1,35 @@
+name: Categories and inactive accounts
+# Copied here from Capworkstudios/Pilotta-pantou (jobs/). Runs every hour and when started by hand.
+# Hibernation and deletion run only when the repository variable TIERS_LIVE is 1.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: tiers
+  cancel-in-progress: false
+jobs:
+  tiers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet firebase-admin==6.5.0
+      - name: Limits, categories, inactivity
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          LIVE: ${{ vars.TIERS_LIVE }}
+        run: python3 .github/tiers_job.py
+      - name: Monthly keep-alive (GitHub stops scheduled jobs of a public repo after 60 days without commits)
+        if: github.event_name == 'schedule'
+        run: |
+          if [ "$(date -u +%d%H)" != "0102" ]; then exit 0; fi
+          date -u +%Y-%m-%d > .github/keepalive.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive.txt
+          git commit -m "Keep the hourly job alive" && git push || true
