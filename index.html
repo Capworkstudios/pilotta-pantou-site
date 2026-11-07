@@ -2144,7 +2144,7 @@ function onlineStart(){
     var fb=window.firebase; if(!fb || !fb.database || !ONLINE.on) return;
     var db=fb.database(), ref=db.ref('live/n'), inc=fb.database.ServerValue.increment;
     ONLINE.ref=ref; ONLINE.inc=inc;
-    ONLINE.conn=function(s){ if(s.val()===true && ONLINE.on) ref.onDisconnect().set(inc(-1)).then(function(){ return ref.set(inc(1)); }).catch(function(){}); };
+    ONLINE.conn=function(s){ if(s.val()===true && ONLINE.on) ref.set(inc(1)).then(function(){ return ref.onDisconnect().set(inc(-1)); }).catch(function(){}); };   /* +1 first: the rules check the -1 of onDisconnect against the value at the time it is registered */
     ONLINE.val=function(s){ ONLINE.n=Math.max(1,Number(s.val())||0); honRefresh(); };
     db.ref('.info/connected').on('value',ONLINE.conn);
     ref.on('value',ONLINE.val,function(){ ONLINE.n=0; honRefresh(); });
