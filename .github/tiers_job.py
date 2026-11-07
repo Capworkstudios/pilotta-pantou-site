@@ -46,9 +46,21 @@ def tier_of(elo, held, cuts):
 users = db.reference('users').get() or {}
 stats = db.reference('stats').get() or {}
 
+# accounts that no longer exist in Authentication (e.g. deleted before the rules allowed removing the profile):
+# their leftovers in the database are removed
+live = set()
+page = auth.list_users()
+while page:
+    for u in page.users:
+        live.add(u.uid)
+    page = page.get_next_page()
+orphans = [uid for uid, u in users.items() if isinstance(u, dict) and uid not in live]
+names = db.reference('usernames').get() or {}
+orphan_names = [k for k, v in names.items() if v not in live]
+
 accounts, active, hib_new, to_del = 0, [], [], []
 for uid, u in users.items():
-    if not isinstance(u, dict) or not isinstance(u.get('profile'), dict):
+    if not isinstance(u, dict) or not isinstance(u.get('profile'), dict) or uid not in live:
         continue
     accounts += 1
     pr, st = u['profile'], stats.get(uid) or {}
@@ -84,7 +96,8 @@ print('accounts %d, active with rated games %d, limits (top50/25/10/3) %s, categ
       % (accounts, n, cuts, len(upd) - 1))
 
 # 2. inactivity
-print('to hibernate %d, to delete %d%s' % (len(hib_new), len(to_del), '' if LIVE else ' (test mode: nothing changed)'))
+print('to hibernate %d, to delete %d, leftovers of deleted accounts %d (usernames %d)%s'
+      % (len(hib_new), len(to_del), len(orphans), len(orphan_names), '' if LIVE else ' (test mode: nothing changed)'))
 if not LIVE:
     sys.exit(0)
 if accounts and len(to_del) > max(10, accounts // 2):
@@ -94,6 +107,9 @@ if accounts and len(to_del) > max(10, accounts // 2):
 for uid in hib_new:
     root.update({'users/%s/hib' % uid: now, 'lb/%s' % uid: None})
 
+to_del += [(uid, ((users.get(uid) or {}).get('profile') or {}).get('username')) for uid in orphans]
+for k in orphan_names:
+    root.update({'usernames/' + k: None})
 if to_del:
     lbw = db.reference('lbw').get(shallow=True) or {}
     lbm = db.reference('lbm').get(shallow=True) or {}
