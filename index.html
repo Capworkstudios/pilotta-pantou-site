@@ -403,7 +403,7 @@ function setBack(id){
   BACK=id; try{ localStorage.setItem('pil.back',id); }catch(e){}
   var el=document.getElementById('skinBack');
   if(!el){ el=document.createElement('style'); el.id='skinBack'; document.head.appendChild(el); }
-  var c=backCss(id); el.textContent=c?('.back,.pile i,.card.flyb{'+c+'}'):'';
+  var c=backCss(id); el.textContent=c?(':root .back,:root .pile i,:root .card.flyb{'+c+'}'):''  /* :root makes it win over the default skin, wherever the main stylesheet sits */;
 }
 setBack(BACK);
 /* avatars: small SVG badges, chosen in Settings and shown next to the name of the human players */
