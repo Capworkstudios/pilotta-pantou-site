@@ -896,6 +896,19 @@ function botPick(p,hand,L){
   var partnerWin=(w%2)===myT, last=trick.length===3;
   var wc=trick.filter(function(t){ return t.p===w; })[0].c;
   var allTr=L.every(function(c){ return c.s===tr; });
+  /* our trumps, my partner leads a trump and I have none: if I take every trick of a suit, throw its Ace to tell him (he pulls the trumps out, then plays that suit to me).
+     Only when his trick is safe, so the Ace is not given to the opponents */
+  if(declarer && led===tr && trick[0].p===partner && partnerWin && !hand.some(function(c){ return c.s===tr; }) && (last || isMaster(wc,p)) && !G.aceSig){
+    var unseen=remaining(p), sigS=null;
+    SUITS.forEach(function(x){
+      if(x===tr || sigS || !has(hand,'A',x)) return;
+      var mine=hand.filter(function(c){ return c.s===x; }); if(mine.length<2) return;
+      var out=unseen.filter(function(c){ return c.s===x; });
+      var low=Math.min.apply(null,mine.map(pStr));
+      if(out.every(function(c){ return pStr(c)<low; })) sigS=x;
+    });
+    if(sigS) return L.filter(function(c){ return c.s===sigS && c.r==='A'; })[0];
+  }
   /* partner leads trumps: put out the strong ones, but keep the 9 when the J is out */
   if(led===tr && trick[0].p===partner && allTr && partnerWin){
     var hi=maxBy(L,tStr);
@@ -1625,8 +1638,8 @@ async function playTricks(){
       }
       if(G.trick.length && card.s!==G.trick[0].c.s) G.void[p][G.trick[0].c.s]=true;
       if(G.trick.length && card.s!==G.trick[0].c.s && card.s!==G.trump){ (G.disc[p][card.s]=G.disc[p][card.s]||[]).push(card); }
-      /* our trumps: a trump is led, I have none and throw the Ace of a suit. It means: I take all the tricks of that suit. The partner pulls out the opponents' trumps and then plays that suit to me */
-      if(G.trick.length && G.trick[0].c.s===G.trump && card.s!==G.trump && card.r==='A' && G.bid && (G.bid.p%2)===(p%2)) G.aceSig={p:p,s:card.s};
+      /* our trumps: my partner leads a trump, I have none and throw the Ace of a suit. It means: I take all the tricks of that suit. The partner pulls out the opponents' trumps and then plays that suit to me */
+      if(G.trick.length && G.trick[0].p===(p+2)%4 && G.trick[0].c.s===G.trump && card.s!==G.trump && card.r==='A' && G.bid && (G.bid.p%2)===(p%2)) G.aceSig={p:p,s:card.s};
       /* a 10 or an Ace thrown under an opponent's winning card is a singleton: he is probably out of that suit now */
       if(G.trick.length && card.s===G.trick[0].c.s && card.s!==G.trump && (card.r==='10' || card.r==='A') && (trickWinner(G.trick,G.trump)%2)!==(p%2)) G.pvoid[p][card.s]=true;
       G.hands[p]=hand.filter(function(c){ return cid(c)!==cid(card); });
