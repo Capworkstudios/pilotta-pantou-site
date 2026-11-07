@@ -235,6 +235,18 @@ body.page .app{display:none}
 .ltab .s0{left:31%;top:0}.ltab .s2{left:31%;bottom:0}.ltab .s1{right:0;top:50%;transform:translateY(-50%)}.ltab .s3{left:0;top:50%;transform:translateY(-50%)}
 .ltab .s0,.ltab .s2{min-height:96px}.ltab .s1,.ltab .s3{width:30%;min-height:96px}
 .ltab .tc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:14%;aspect-ratio:1.3;border-radius:50%;background:var(--felt,#154a3a);opacity:.9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em}
+/* lobby: smaller so that everything fits the phone screen, buttons included */
+.sheet:has(.ltab){gap:8px;padding:12px 14px}
+.sheet:has(.ltab) h2{font-size:21px}
+.sheet:has(.ltab) .codebox small{font-size:11px;margin-bottom:2px}
+.sheet:has(.ltab) .codebox span{font-size:26px;padding:4px 16px 4px calc(16px + .25em)}
+.sheet:has(.ltab) p{font-size:13px;line-height:1.35}
+.sheet:has(.ltab) .hint{font-size:12px}
+.sheet:has(.ltab) .ltab{height:250px;margin:0}
+.sheet:has(.ltab) .ltab .ls{min-height:54px;padding:4px 6px;gap:2px}
+.sheet:has(.ltab) .lleg{font-size:12px;gap:10px}
+.sheet:has(.ltab) .stepper output{font-size:24px}
+.sheet:has(.ltab) .ltab .btn{min-height:28px;padding:1px 10px}
 .lleg{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:13px}
 .lleg i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .sheet ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
