@@ -2194,9 +2194,9 @@ function plusApply(){
 }
 /* Pilotta Plus: a one-time payment (from 2.99 €) through Stripe Payment Links. The link carries the account (client_reference_id = uid);
    the hourly job reads the paid sessions and writes users/UID/plus. Empty links = payments not open yet */
-var PAY={p299:'',p499:'',open:'',site:'https://pilottapantou.com/'};
+var PAY={p299:'https://buy.stripe.com/cNibJ00Kz9wf3rH1Sx0Ny01',p499:'https://buy.stripe.com/aFa9AS3WLfUD4vLfJn0Ny00',open:'https://buy.stripe.com/aFa7sKal937R6DTap30Ny02',site:'https://pilottapantou.com/'};   /* live Stripe links */
 /* Stripe test mode (sandbox links, test cards only): used only on a device where localStorage pil.paytest = '1',
-   so normal players still see "payments open soon" until the live links go in PAY above */
+   for tests with Stripe test cards; everyone else uses the live links above */
 try{ var pt=/[?&]paytest=([01])/.exec(location.search); if(pt){ if(pt[1]==='1') localStorage.setItem('pil.paytest','1'); else localStorage.removeItem('pil.paytest'); } }catch(e){}   /* pilottapantou.com/?paytest=1 turns it on, ?paytest=0 off */
 try{ if(localStorage.getItem('pil.paytest')==='1') PAY=Object.assign(PAY,{p299:'https://buy.stripe.com/test_00w00l0wt1z57aa6HFcs800',p499:'https://buy.stripe.com/test_6oU3cxdjfb9F8eefebcs801',open:'https://buy.stripe.com/test_28EaEZ1Ax0v1gKKgifcs802'}); }catch(e){}
 function payOpen(){ return !!(PAY.p299 && PAY.p499 && PAY.open); }
