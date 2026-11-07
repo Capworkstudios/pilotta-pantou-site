@@ -2212,7 +2212,7 @@ function showSupport(back){
     +'<p class="hint" id="spM">'+(!payOpen() ? 'Οι πληρωμές ανοίγουν σύντομα.' : (!me ? 'Συνδέσου πρώτα, για να μπει το Plus στον λογαριασμό σου.' : 'Η πληρωμή γίνεται στη σελίδα της Stripe. Το Plus ενεργοποιείται αυτόματα, το πολύ μέσα σε μία ώρα.'))+'</p>'
     +'<p class="hint"><a href="#" id="spI">Τι περιλαμβάνει</a> · <a href="#" id="spT">Όροι χρήσης</a> · <a href="#" id="spR">Επιστροφές</a></p>'
     +'<div class="stack">'+(LOGIN_ON && !me ? '<button class="btn big" id="spIn" type="button">Σύνδεση / Λογαριασμός</button>' : '')+'<button class="btn" id="spBk" type="button">Πίσω</button></div>',function(sh){
-    var lang=LANGEN?'#en':'';
+    var lang=LANGEN?'#en':'#el';
     sh.querySelector('#spI').addEventListener('click',function(e){ e.preventDefault(); extOpen(PAY.site+'plus.html'+lang); });
     sh.querySelector('#spT').addEventListener('click',function(e){ e.preventDefault(); extOpen(PAY.site+'terms.html'+lang); });
     sh.querySelector('#spR').addEventListener('click',function(e){ e.preventDefault(); extOpen(PAY.site+'refunds.html'+lang); });
