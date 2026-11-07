@@ -829,10 +829,10 @@ function botPick(p,hand,L){
     var remTs=remaining(p).filter(function(x){ return x.s===tr; });
     var oppPoss=[(p+1)%4,(p+3)%4].filter(function(q){ return !(G.void[q] && G.void[q][tr]); });
     var drawT = remT>0 && oppPoss.length>0 && !(oppPoss.length===1 && remT<=1) && !(remT<=2 && remTs.every(function(x){ return cpts(x,tr)===0; }));
-    /* my partner threw an Ace on a trump trick: first all the opponents' trumps come out, then I play that suit to him */
+    /* my partner threw an Ace on a trump trick: first all the trumps of the round come out (the opponents' and mine), then I play that suit to him */
     if(declarer && G.aceSig && G.aceSig.p===partner){
       var oppT=remT>0 && oppPoss.length>0;
-      if(oppT && trumps.length) return masterT.length ? maxBy(masterT,tStr) : minBy(trumps,tStr);
+      if(trumps.length) return masterT.length ? maxBy(masterT,tStr) : minBy(trumps,tStr);
       var sg=hand.filter(function(c){ return c.s===G.aceSig.s; });
       if(!oppT && sg.length) return minBy(sg,pStr);
     }
