@@ -2525,6 +2525,7 @@ function showPlayer(info,back){
   (async function(){
     var T=acctT(); await T.init();
     var pr=(await T.get('users/'+info.uid+'/profile').catch(function(){ return null; }))||{};
+    if(!pr.username) return;   /* nothing found (e.g. no connection): keep what the table already showed */
     var bs=(await T.get('users/'+info.uid+'/badges').catch(function(){ return null; }))||{};
     var t=typeof pr.tr==='number' ? pr.tr : t0;
     var x={name:pr.username||base.name, av:pr.av||base.av, t:t, badges:[], st:'', loading:false};
