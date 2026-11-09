@@ -2197,14 +2197,15 @@ function onlineStart(){
     db.ref('.info/connected').on('value',ONLINE.conn);
     ref.on('value',ONLINE.val,function(){ ONLINE.n=0; honRefresh(); });
     /* my presence (read only by my friends), my friends' presence, and invitations to tables */
-    var me=ACCT.user.uid, pres=db.ref('pres/'+me);
+    /* one entry per device (pres/ME/DEVICE): a second device, or a device that was signed out, does not hide the one still open */
+    var me=ACCT.user.uid, pres=db.ref('pres/'+me+'/'+DEVID);
     ONLINE.pres=pres;
     ONLINE.pconn=function(s){ if(s.val()===true && ONLINE.on) pres.set(true).then(function(){ return pres.onDisconnect().remove(); }).catch(function(){}); };
     db.ref('.info/connected').on('value',ONLINE.pconn);
     FRON.ref=db.ref('friends/'+me);
     FRON.fn=function(s){ var ids=Object.keys(s.val()||{});
       Object.keys(FRON.subs).forEach(function(f){ if(ids.indexOf(f)<0){ FRON.subs[f].off('value'); delete FRON.subs[f]; delete FRON.on[f]; unrDrop(f); } });
-      ids.forEach(function(f){ unrSub(f); if(FRON.subs[f]) return; var r=db.ref('pres/'+f); FRON.subs[f]=r; r.on('value',function(v){ if(v.val()===true) FRON.on[f]=1; else delete FRON.on[f]; fronRefresh(); },function(){}); });
+      ids.forEach(function(f){ unrSub(f); if(FRON.subs[f]) return; var r=db.ref('pres/'+f); FRON.subs[f]=r; r.on('value',function(v){ var x=v.val(); if(x===true || (x && typeof x==='object' && Object.keys(x).length)) FRON.on[f]=1; else delete FRON.on[f]; fronRefresh(); },function(){}); });
       fronRefresh(); };
     UNR.mref=db.ref('users/'+me+'/cr'); UNR.mfn=function(s){ UNR.mk=s.val()||{}; Object.keys(UNR.q).forEach(unrSub); }; UNR.mref.on('value',UNR.mfn,function(){});
     FRON.ref.on('value',FRON.fn,function(){});
