@@ -4011,7 +4011,7 @@ function mpNearbyFind(P,name,back,onStart){
 /* ----- quick match: everybody who presses "Γρήγορο παιχνίδι" waits in qm/q; the player who has waited longest makes the table and sends the room code to the next three (qm/as/UID). After 25 s the empty seats get bots. ----- */
 async function mpQuick(T,name,onStart,back){
   MP.T=T; MP.uid=await T.init();
-  var me=MP.uid, t0=Date.now(), q={}, stopped=false, busy=false, unsubs=[], hb=null, tick=null, WAIT=25000*(window.__QMSPEED||1);
+  var me=MP.uid, t0=Date.now(), q={}, stopped=false, busy=false, firstAt=0, unsubs=[], hb=null, tick=null, WAIT=25000*(window.__QMSPEED||1);
   var pri=hasPlus();
   function put(){ var e={name:name,ts:t0,hb:Date.now()}; if(pri) e.p=1; T.set('qm/q/'+me,e); }
   function live(){
@@ -4030,18 +4030,29 @@ async function mpQuick(T,name,onStart,back){
   }
   async function check(){
     if(stopped||busy) return;
-    var L=live(); if(!L.length || L[0].uid!==me) return;
+    var L=live(); if(!L.length || L[0].uid!==me){ firstAt=0; return; }
+    /* act only after being first for 1.5 s: players who pressed at the same moment have seen each other by then */
+    if(!firstAt) firstAt=Date.now();
+    if(Date.now()-firstAt<1500) return;
     if(L.length<4 && Date.now()-t0<WAIT) return;
     busy=true;
+    /* another phone may have made a table at the same moment (both saw themselves first): if it already took me, I go there */
+    if(await T.get('qm/as/'+me).catch(function(){ return null; })){ busy=false; return; }
     var code, ok=false;
     for(var i=0;i<8 && !ok;i++){ code=mpCode(); ok=await T.claim('rooms/'+code+'/meta',{host:me,target:201,status:'lobby',ts:Date.now()}); }
     if(!ok){ busy=false; return; }
     await T.claim('rooms/'+code+'/seat0',{uid:me,name:name,av:myAv(),r:myRating(),bd:myBadgeDesc()});
-    var others=L.slice(1,4);
-    for(var k=0;k<others.length;k++) await T.claim('qm/as/'+others[k].uid,{code:code,ts:Date.now()});
-    for(var j=0;j<others.length;j++) T.remove('qm/q/'+others[j].uid);
+    var others=L.slice(1,4), got=[];
+    /* a claim succeeds only if nobody else took that player first: only those who were really taken come to my table */
+    for(var k=0;k<others.length;k++){ if(await T.claim('qm/as/'+others[k].uid,{code:code,ts:Date.now()}).catch(function(){ return false; })) got.push(others[k]); }
+    if(others.length && !got.length){
+      /* all of them went to another table: drop mine and stay in the queue */
+      T.remove('rooms/'+code+'/seat0'); T.remove('rooms/'+code+'/meta');
+      busy=false; return;
+    }
+    for(var j=0;j<got.length;j++) T.remove('qm/q/'+got[j].uid);
     T.remove('qm/q/'+me);
-    stop(); MP.code=code; MP.host=true; MP.on=true; MP.auto=true; MP.qExp=1+others.length;
+    stop(); MP.code=code; MP.host=true; MP.on=true; MP.auto=true; MP.qExp=1+got.length;
     mpLobby(name,onStart,back);
   }
   put(); try{ T.onDiscRemove('qm/q/'+me); }catch(e){}
