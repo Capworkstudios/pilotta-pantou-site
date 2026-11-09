@@ -1471,6 +1471,35 @@ function logHTML(){
 }
 function waitPanel(msg){ G.pubMsg=msg; if(typeof mpSchedule==='function') mpSchedule(); setPanel('<div class="status">'+esc(msg)+'</div>'+(G.trump?'':logHTML())); }
 function openSheet(html,bind){ var ov=$('#ov'), sh=$('#sheet'); sh.className='sheet'; sh.innerHTML=html; ov.hidden=false; ov.scrollTop=0; if(bind) bind(sh); var b=sh.querySelector('button'); if(b) b.focus(); }
+/* the phone's Back button (and the browser's): go back inside the game, not to the previous web page.
+   A history entry is kept as a trap; on Back the open window's own back button is pressed (Back, Close, Cancel, Not now, Menu, Skip),
+   during a game the game menu opens, and on the main menu Back leaves the site (or closes the app) as usual. */
+var BACKT=['Πίσω','Back','Κλείσιμο','Close','Άκυρο','Ακύρωση','Cancel','Όχι τώρα','Not now','Μενού','Menu','Παράλειψη','Skip'];
+function backPress(){
+  var vis=function(b){ return b && !b.disabled && b.offsetParent!==null; };
+  var w=[].slice.call(document.querySelectorAll('.afkw')).pop();
+  if(w){ var wb=[].slice.call(w.querySelectorAll('button')).filter(vis); var no=wb.filter(function(b){ return BACKT.indexOf(b.textContent.trim())>=0; })[0]; if(no){ no.click(); return true; } return true; }
+  var ov=$('#ov'), sh=$('#sheet');
+  if(ov && !ov.hidden && sh && sh.innerHTML){
+    if(sh.classList.contains('home')) return false;
+    var bs=[].slice.call(sh.querySelectorAll('button')).filter(vis);
+    var gr=sh.querySelector('#gResume'); if(vis(gr)){ gr.click(); return true; }
+    for(var i=0;i<BACKT.length;i++){ var hit=bs.filter(function(b){ return b.textContent.trim()===BACKT[i]; }); if(hit.length){ hit[hit.length-1].click(); return true; } }
+    return true;   /* a window without a way back (e.g. the round result): stay */
+  }
+  var gm=$('#btnMenu'); if(vis(gm)){ gm.click(); return true; }
+  return false;
+}
+(function(){
+  try{
+    if(!window.history || !history.pushState || window.__AUTO) return;
+    history.replaceState({pil:0},''); history.pushState({pil:1},'');
+    window.addEventListener('popstate',function(){
+      var done=false; try{ done=backPress(); }catch(e){ done=true; }
+      if(done) history.pushState({pil:1},''); else history.back();
+    });
+  }catch(e){}
+})();
 function setPage(on){ document.body.classList.toggle('page',on); $('#ov').classList.toggle('page',on); }
 function closeSheet(){ setPage(false); $('#ov').hidden=true; $('#sheet').innerHTML=''; }
 
