@@ -794,8 +794,11 @@ function botKlisto(p,hand,high){
   var estB=(152-pm)*2/3+11;
   /* if the bid fails, my team gets 16 + the doubled bid: when that wins the game, call it whenever the bid looks shaky */
   var gain=16+high.val*2/10;
-  if(G.scores[p%2]+gain>=G.target && estB < high.val+5 && strong>=1 && Math.random()<0.8) return true;
-  return estB < high.val-20 && strong>=1 && Math.random()<0.35;
+  /* real games (429 rounds of 5-9 Nov 2026): a «Κλειστό» was right only 43% of the time. Holding the Jack with at least one more trump,
+     against a bid of 100 or more, it was right 68% of the time; without the Jack, with a single trump or against 80/90, mostly wrong */
+  if(!(mt.length>=2 && mt.some(function(c){ return c.r==='J'; }) && high.val>=100)) return false;
+  if(G.scores[p%2]+gain>=G.target && estB < high.val+5 && Math.random()<0.8) return true;
+  return estB < high.val-20 && Math.random()<0.35;
 }
 function lastBidIdx(p){
   for(var i=G.bidLog.length-1;i>=0;i--){ if(G.bidLog[i].bid && G.bidLog[i].p===p) return i; }
@@ -816,7 +819,16 @@ function botBid(p,high,canK){
   var od=oppDeclKnown(p), mine=0;
   if(od>0){ var ms=declEval(G.hands[p]).melds; mine = ms.length ? bestMeld(ms).pts : 0; }
   NODECL = od>0 && od>=mine;
-  try{ return botBid0(p,high,canK); } finally{ NODECL=false; }
+  try{
+    var r=botBid0(p,high,canK);
+    /* real games (429 rounds of 5-9 Nov 2026): bidding my own suit again over the opponents, without its Jack and without a declaration,
+       failed 9 times out of 11. Pass instead */
+    if(r.type==='bid' && high && (high.p%2)!==(p%2)){
+      var myI=lastBidIdx(p), ptI=lastBidIdx((p+2)%4);
+      if(myI>=0 && G.bidLog[myI].s===r.s && !(ptI>=0 && G.bidLog[ptI].s===r.s) && !has(G.hands[p],'J',r.s) && (NODECL || declEval(G.hands[p]).total===0)) return {type:'pass'};
+    }
+    return r;
+  } finally{ NODECL=false; }
 }
 function botBid0(p,high,canK){
   var hand=G.hands[p], pt=(p+2)%4, PASS={type:'pass'};
