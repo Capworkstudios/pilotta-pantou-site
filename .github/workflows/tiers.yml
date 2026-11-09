@@ -3,7 +3,7 @@ name: Categories and inactive accounts
 # Hibernation and deletion run only when the repository variable TIERS_LIVE is 1.
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
