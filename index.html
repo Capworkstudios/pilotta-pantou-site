@@ -2192,7 +2192,13 @@ function onlineStart(){
     var fb=window.firebase; if(!fb || !fb.database || !ONLINE.on) return;
     var db=fb.database(), ref=db.ref('live/n'), inc=fb.database.ServerValue.increment;
     ONLINE.ref=ref; ONLINE.inc=inc;
-    ONLINE.conn=function(s){ if(s.val()===true && ONLINE.on) ref.set(inc(1)).then(function(){ return ref.onDisconnect().set(inc(-1)); }).catch(function(){}); };   /* +1 first: the rules check the -1 of onDisconnect against the value at the time it is registered */
+    ONLINE.conn=function(s){ if(s.val()===true && ONLINE.on) ref.set(inc(1)).then(function(){ return ref.onDisconnect().set(inc(-1)); }).catch(function(){}); };
+    /* one anonymous entry per open app (live/c/RANDOM), removed on disconnect: every hour the server job counts them and corrects live/n,
+       so the counter cannot drift when a -1 on disconnect gets lost */
+    if(!ONLINE.cid) ONLINE.cid='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    var cref=db.ref('live/c/'+ONLINE.cid); ONLINE.cref=cref;
+    ONLINE.cconn=function(s){ if(s.val()===true && ONLINE.on) cref.set(true).then(function(){ return cref.onDisconnect().remove(); }).catch(function(){}); };
+    db.ref('.info/connected').on('value',ONLINE.cconn);   /* +1 first: the rules check the -1 of onDisconnect against the value at the time it is registered */
     ONLINE.val=function(s){ ONLINE.n=Math.max(1,Number(s.val())||0); honRefresh(); };
     db.ref('.info/connected').on('value',ONLINE.conn);
     ref.on('value',ONLINE.val,function(){ ONLINE.n=0; honRefresh(); });
@@ -2219,7 +2225,7 @@ function onlineStop(){
   try{ var db0=window.firebase.database(); db0.ref('.info/connected').off('value',ONLINE.pconn); if(ONLINE.pres){ ONLINE.pres.onDisconnect().cancel(); ONLINE.pres.remove().catch(function(){}); }
     if(FRON.ref) FRON.ref.off('value',FRON.fn); Object.keys(FRON.subs).forEach(function(f){ FRON.subs[f].off('value'); }); FRON.subs={}; FRON.on={}; fronRefresh();
     if(INV.ref) INV.ref.off('child_added',INV.fn); if(UNR.mref) UNR.mref.off('value',UNR.mfn); Object.keys(UNR.q).forEach(unrDrop); UNR.mk={}; unrRefresh(); }catch(e){}
-  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.conn); if(ONLINE.ref){ ONLINE.ref.off('value',ONLINE.val); ONLINE.ref.onDisconnect().cancel(); ONLINE.ref.set(ONLINE.inc(-1)).catch(function(){}); } }catch(e){}
+  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.conn); db.ref('.info/connected').off('value',ONLINE.cconn); if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); } if(ONLINE.ref){ ONLINE.ref.off('value',ONLINE.val); ONLINE.ref.onDisconnect().cancel(); ONLINE.ref.set(ONLINE.inc(-1)).catch(function(){}); } }catch(e){}
   ONLINE.n=0; honRefresh();
 }
 var FRON={n:0,on:{},subs:{}}, INV={};

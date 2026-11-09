@@ -76,6 +76,14 @@ for uid, u in users.items():
     elif not u.get('hib') and int(st.get('g') or 0) >= 1:
         active.append(uid)
 
+# online counter: live/c holds one entry per open app (removed when it disconnects); live/n is the +1/-1 counter the
+# apps read. A lost -1 makes live/n drift, so it is set to the real number of entries every hour.
+live_c = len(db.reference('live/c').get(shallow=True) or {})
+live_n = db.reference('live/n').get()
+if live_n != live_c:
+    db.reference('live/n').set(live_c)
+print('online counter: %s corrected to %d' % (live_n, live_c) if live_n != live_c else 'online counter: %d (correct)' % live_c)
+
 # 1. limits and categories
 elos = sorted((int(stats[u].get('elo') or 1000) for u in active), reverse=True)
 n = len(elos)
