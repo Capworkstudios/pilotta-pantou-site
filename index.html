@@ -1804,7 +1804,7 @@ async function claimRest(t0,p){
   waitPanel(meP ? 'Τα φύλλα σου είναι τα πιο δυνατά που έμειναν, οπότε παίρνεις τις υπόλοιπες '+n+' μπάζες. Ο γύρος τελειώνει εδώ.' : nm(p)+' έχει τα πιο δυνατά φύλλα που έμειναν και παίρνει τις υπόλοιπες '+n+' μπάζες. Ο γύρος τελειώνει εδώ.');
   G.claimShow={p:p,h:G.hands.map(function(h){ return h.map(cid); })};
   claimBoxShow(G.claimShow); if(typeof mpSchedule==='function') mpSchedule();
-  await sleep(2800);
+  await sleep(5000);
   G.claimShow=null; claimBoxShow(null); if(typeof mpSchedule==='function') mpSchedule();
   for(var t=t0;t<8;t++){
     G.trick=[]; G.trickNo=t;
