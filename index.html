@@ -2581,6 +2581,23 @@ function gsiToken(){
     .catch(function(e){ throw (e&&e.code&&String(e.code).indexOf('gsi/')===0) ? e : gsiErr(e); });
 }
 function gsiCred(t){ return window.firebase.auth.GoogleAuthProvider.credential(t); }
+/* web: sign in with Google through Google's own window (accounts.google.com), not through the Firebase page on firebaseapp.com.
+   The Google script is loaded in advance, so the window opens straight from the tap (a late window is blocked by the browser).
+   The address of the site must be in the "Authorized JavaScript origins" of the web OAuth client in Google Cloud. */
+setTimeout(function(){
+  if(gsiPlugin() || window.__authMock || document.getElementById('gisScript') || !/^https:$/.test(location.protocol)) return;
+  var sc=document.createElement('script'); sc.id='gisScript'; sc.src='https://accounts.google.com/gsi/client'; sc.async=true; document.head.appendChild(sc);
+},0);
+function webGis(){ return !gsiPlugin() && window.google && window.google.accounts && window.google.accounts.oauth2; }
+function webGToken(){
+  return new Promise(function(res,rej){
+    var tc=window.google.accounts.oauth2.initTokenClient({client_id:GSI_WEB_CLIENT, scope:'openid email profile', prompt:'select_account',
+      callback:function(r){ if(r && r.access_token) res(r.access_token); else { var e=new Error((r && r.error) || 'no token'); e.code='auth/gis-'+((r && r.error) || 'error'); rej(e); } },
+      error_callback:function(x){ var e=new Error(x && x.type); e.code=(x && x.type==='popup_closed') ? 'auth/popup-closed-by-user' : (x && x.type==='popup_failed_to_open') ? 'auth/popup-blocked' : 'auth/gis-'+((x && x.type) || 'error'); rej(e); }});
+    tc.requestAccessToken();
+  });
+}
+function webGCred(t){ return window.firebase.auth.GoogleAuthProvider.credential(null,t); }
 function gsiLogout(){ var P=gsiPlugin(); if(!P || !window.__gsiInit) return Promise.resolve(); return window.__gsiInit.then(function(){ return P.logout({provider:'google'}); }).catch(function(){}); }
 function acctFb(){
   if(window.__authMock) return window.__authMock;
@@ -2590,9 +2607,11 @@ function acctFb(){
     signIn:function(em,pw){ return acctT().init().then(function(){ return window.firebase.auth().signInWithEmailAndPassword(em,pw); }).then(function(c){ return {uid:c.user.uid,email:c.user.email}; }); },
     google:function(){ return acctT().init().then(function(){ var au=window.firebase.auth();
         if(nat) return gsiToken().then(function(t){ return au.signInWithCredential(gsiCred(t)); });
+        if(webGis()) return webGToken().then(function(t){ return au.signInWithCredential(webGCred(t)); });
         return au.signInWithPopup(new window.firebase.auth.GoogleAuthProvider()); }).then(function(c){ return {uid:c.user.uid,email:c.user.email||''}; }); },
     removeGoogle:function(){ var au=window.firebase.auth(), u=au.currentUser;
       if(nat) return gsiToken().then(function(t){ return u.reauthenticateWithCredential(gsiCred(t)); }).then(function(){ return u; });
+      if(webGis()) return webGToken().then(function(t){ return u.reauthenticateWithCredential(webGCred(t)); }).then(function(){ return u; });
       return u.reauthenticateWithPopup(new window.firebase.auth.GoogleAuthProvider()).then(function(){ return u; }); },
     signOut:function(){ var p=nat ? gsiLogout() : Promise.resolve(); return p.then(function(){ return window.firebase ? window.firebase.auth().signOut() : null; }); },
     reset:function(em){ return acctT().init().then(function(){ return window.firebase.auth().sendPasswordResetEmail(em); }); },
