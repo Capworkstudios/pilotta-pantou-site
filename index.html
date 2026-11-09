@@ -4118,10 +4118,10 @@ function rtcPair(a,b){ return (a<b?a:b)+'_'+(a<b?b:a); }
 var TURN_URL='https://turn.pilottapantou.com/ice', STUN0=null;
 function turnFetch(){
   if(!STUN0) STUN0=RTC.ice.slice();
-  if(RTC.turnTs && Date.now()-RTC.turnTs<4*3600000) return;
+  if(RTC.turnTs && Date.now()-RTC.turnTs<4*3600000) return Promise.resolve();
   RTC.turnTs=Date.now();
-  var ac=window.AbortController ? new AbortController() : null; if(ac) setTimeout(function(){ ac.abort(); },5000);
-  fetch(TURN_URL,{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(r){ return r.json(); }).then(function(j){
+  var ac=window.AbortController ? new AbortController() : null; if(ac) setTimeout(function(){ ac.abort(); },4000);
+  return fetch(TURN_URL,{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(r){ return r.json(); }).then(function(j){
     var ts=((j && j.iceServers) || []).filter(function(x){ return x && x.urls && x.username; });
     if(!ts.length){ RTC.turnTs=0; return; }
     RTC.ice=STUN0.concat(ts);
@@ -4131,7 +4131,6 @@ function turnFetch(){
 function rtcStart(me,hm){
   if(MP.nearby || RTC.on || !MP.T || !(window.RTCPeerConnection)) return;
   RTC.on=true; RTC.me=me; RTC.seats=[]; RTC.err={}; RTC.t0={};
-  turnFetch();
   rtcStatStart();
   for(var q=0;q<4;q++) if(hm[q] && q!==me) RTC.seats.push(q);
   var bar=$('#vc'); if(!bar) return;
@@ -4146,7 +4145,9 @@ function rtcStart(me,hm){
   RTC.mineEl=mine; RTC.mineVid=mine.querySelector('video');
   bar.querySelector('#vcMic').onclick=function(){ rtcToggle('mic'); };
   bar.querySelector('#vcCam').onclick=function(){ rtcToggle('cam'); };
-  RTC.seats.forEach(rtcPeer);
+  /* the connections are made once the TURN credentials are here (at most ~4 s): candidates are gathered when a connection starts,
+     so servers added later would not be used */
+  turnFetch().then(function(){ if(RTC.on && RTC.me===me) RTC.seats.forEach(function(q){ if(!RTC.pcs[q]) rtcPeer(q); }); });
   RTC.unsubs.push(MP.T.on(rtcBase()+'st',function(v){ RTC.st=v||{}; rtcShow(); }));
   RTC.nameT=setInterval(rtcShow,2000);
   var nt=bar.querySelector('.vcnote'); if(!nt){ nt=document.createElement('p'); nt.className='vcnote'; bar.appendChild(nt); }
