@@ -30,6 +30,12 @@ jobs:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
           LIVE: ${{ vars.TIERS_LIVE }}
         run: python3 .github/tiers_job.py
+      - name: Usage report (only when started by hand)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: python3 .github/usage_job.py
       - name: Monthly keep-alive (GitHub stops scheduled jobs of a public repo after 60 days without commits)
         if: github.event_name == 'schedule'
         run: |
