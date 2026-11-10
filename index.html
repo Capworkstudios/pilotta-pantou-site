@@ -4138,8 +4138,8 @@ async function mpJoin(T,code,name,onStart,back,err,autoSeat){
 }
 function mpLobby(name,onStart,back){
   var T=MP.T, seats=[null,null,null,null], meta={target:151,status:'lobby'}, unsubs=[], started=false, waiting={};
-  var autoIv=null;
-  function leave(){ clearInterval(autoIv); unsubs.forEach(function(u){ try{ u(); }catch(e){} }); }
+  var autoIv=null, pollIv=null;
+  function leave(){ clearInterval(autoIv); clearInterval(pollIv); unsubs.forEach(function(u){ try{ u(); }catch(e){} }); }
   function mySeat(){ for(var i=0;i<4;i++) if(seats[i] && seats[i].uid===MP.uid) return i; return -1; }
   function waitList(){ return Object.keys(waiting||{}).filter(function(u){ return !seats.some(function(s){ return s && s.uid===u; }); }); }
   /* host presses Start: the players who have not chosen a seat get a random free one, the seats still empty get bots */
@@ -4214,12 +4214,15 @@ function mpLobby(name,onStart,back){
   }
   for(var i=0;i<4;i++) (function(i){ unsubs.push(T.on(mpBase()+'seat'+i,function(v){ seats[i]=v||null; if(!started) draw(); })); })(i);
   if(MP.host) unsubs.push(T.on(mpBase()+'join',function(v){ waiting=v||{}; if(!started) draw(); }));
-  unsubs.push(T.on(mpBase()+'meta',function(v){
+  function onMeta(v){
     if(!v) return; meta=v;
     if(!MP.host && v.status==='closed' && !started){ started=true; leave(); mpTableGone(true); return; }
     if(!MP.host && v.status==='playing' && !started && (v.gid||v.ts)!==MP.lastGid){ started=true; leave(); var me=mySeat(); MP.lastGid=v.gid||v.ts; if(me>=0) mpClientRun(MP.code,me,MP.uid); else { toast('Το παιχνίδι ξεκίνησε χωρίς εσένα.',3000); MP.on=false; if(T.stop) T.stop(); MP.nearby=false; MP.noTimer=false; back(); } }
     else if(!started && !MP.host) draw();
-  }));
+  }
+  unsubs.push(T.on(mpBase()+'meta',onMeta));
+  /* safety net for a guest: if the 'game started' message from the host is missed (it was seen with the host on the phone app and the guest in a browser), ask for the table state every 2.5 s */
+  if(!MP.host && !MP.auto) pollIv=setInterval(function(){ if(started){ clearInterval(pollIv); return; } try{ var r=T.get(mpBase()+'meta'); if(r && r.then) r.then(function(v){ if(!started) onMeta(v); }).catch(function(){}); }catch(e){} },2500);
 }
 function mpHostStart(seats,target,onStart,leave){
   MP.uids=[null,null,null,null]; MP.avs=['','','','']; MP.bds=[null,null,null,null];
