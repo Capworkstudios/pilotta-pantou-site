@@ -2412,7 +2412,7 @@ function showHome(inGame,canResume,onResume,onNew){
     var hf=sh.querySelector('#hFr'); if(hf){ hf.addEventListener('click',function(){ showFr(again); }); frCount().then(function(n){ var l=hf.querySelector('.frl'); if(n>0 && l) l.textContent='Φίλοι ('+n+')'; }).catch(function(){}); }
     var hl=sh.querySelector('#hLb'); if(hl) hl.addEventListener('click',function(){ if(LB_OPEN) showLb(again); else showSoon('Κατάταξη','Έρχεται σύντομα.',again); });
     sh.querySelector('#hAv').addEventListener('click',function(){ showMe(again); });
-    sh.querySelector('#hPlus').addEventListener('click',function(){ showSupport(again); });
+    sh.querySelector('#hPlus').addEventListener('click',function(){ plusBtn(again); });
     sh.querySelector('#hSet').addEventListener('click',function(){ showSettings(again); });
     sh.querySelector('#hLook').addEventListener('click',function(){ showLook(again); });
     sh.querySelector('#hLang').addEventListener('click',function(){ try{ localStorage.setItem('pil.lang',LANGEN?'gr':'en'); }catch(e){} location.reload(); });
@@ -2454,7 +2454,10 @@ var PAY={p299:'https://buy.stripe.com/cNibJ00Kz9wf3rH1Sx0Ny01',p499:'https://buy
    for tests with Stripe test cards; everyone else uses the live links above */
 try{ var pt=/[?&]paytest=([01])/.exec(location.search); if(pt){ if(pt[1]==='1') localStorage.setItem('pil.paytest','1'); else localStorage.removeItem('pil.paytest'); } }catch(e){}   /* pilottapantou.com/?paytest=1 turns it on, ?paytest=0 off */
 try{ if(localStorage.getItem('pil.paytest')==='1') PAY=Object.assign(PAY,{p299:'https://buy.stripe.com/test_00w00l0wt1z57aa6HFcs800',p499:'https://buy.stripe.com/test_6oU3cxdjfb9F8eefebcs801',open:'https://buy.stripe.com/test_28EaEZ1Ax0v1gKKgifcs802'}); }catch(e){}
-function payOpen(){ return !!(PAY.p299 && PAY.p499 && PAY.open); }
+/* Plus is switched off for now: its buttons say «coming soon». Set PLUS_OPEN=true to open it again */
+var PLUS_OPEN=false;
+function plusBtn(again){ if(PLUS_OPEN) showSupport(again); else showSoon('Pilotta Plus','Έρχεται σύντομα.',again); }
+function payOpen(){ return PLUS_OPEN && !!(PAY.p299 && PAY.p499 && PAY.open); }
 function showPlus(){
   if(payOpen()) mpNotice('Pilotta Plus','Αυτό είναι μέρος του Pilotta Plus, με μία πληρωμή από 2,99 €.','Δες το Plus',function(){ showSupport(closeSheet); });
   else mpNotice('Pilotta Plus','Αυτό είναι μέρος του Pilotta Plus. Το Plus έρχεται σύντομα.','OK',function(){});
@@ -2931,7 +2934,7 @@ function showMe(back){
     sh.querySelector('#mPv').addEventListener('click',function(){ privOpen(again); });
     sh.querySelector('#mAv').addEventListener('click',function(){ showAvatars(again); });
     sh.querySelector('#mBd').addEventListener('click',function(){ showBadges(again); });
-    sh.querySelector('#mPlus').addEventListener('click',function(){ showSupport(again); });
+    sh.querySelector('#mPlus').addEventListener('click',function(){ plusBtn(again); });
     var mi=sh.querySelector('#mIn'); if(mi) mi.addEventListener('click',function(){ showAuth({back:again,done:back}); });
     sh.querySelector('#mBk').addEventListener('click',back);
   });
@@ -2989,7 +2992,7 @@ function showProfile(back){
     sh.querySelector('#pAv').addEventListener('click',function(){ showAvatars(again); });
     sh.querySelector('#pBd').addEventListener('click',function(){ showBadges(again); });
     sh.querySelector('#pUn').addEventListener('click',function(){ showSoon('Αλλαγή username','Σύντομα θα μπορείς να αλλάζεις το username σου. Τα στατιστικά, οι φίλοι και τα σήματά σου θα μείνουν ίδια.',again); });
-    sh.querySelector('#pPlus').addEventListener('click',function(){ showSupport(again); });
+    sh.querySelector('#pPlus').addEventListener('click',function(){ plusBtn(again); });
     sh.querySelector('#pPv').addEventListener('click',function(){ privOpen(again); });
     sh.querySelector('#pOut').addEventListener('click',function(){ acctSignOut().then(back); });
     sh.querySelector('#pDel').addEventListener('click',function(){ showDelete(again,back); });
