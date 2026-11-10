@@ -1898,7 +1898,7 @@ async function playTricks(){
     }
     sfx('trick');
     waitPanel((w===G.me && !MP.on ? 'Παίρνεις' : nm(w)+' παίρνει')+' τη μπάζα (+'+pts+').');
-    await sleep(800);
+    await sleep(2000); /* after the last card of a trick, 2 s to look at the table before the cards are collected */
     flyCards(w); await sleep(500);
     leader=w;
   }
@@ -4331,8 +4331,16 @@ function rtcBad(q){
   var s=(RTC.st && RTC.st[q])||{}, used=RTC.micOn||RTC.camOn||s.m||s.c, st=pc.connectionState;
   return !!used && (st==='failed' || ((st==='new'||st==='connecting') && RTC.t0[q] && Date.now()-RTC.t0[q]>25000));
 }
+/* Android: while somebody's microphone or camera is on, the call sound must go to the loudspeaker (or to the headset), not to the earpiece. The native plugin AudioRoute does it. */
+function audioRoute(on){
+  on=!!on; if(RTC.route===on) return; RTC.route=on;
+  try{ var C=window.Capacitor; if(!(C && C.getPlatform && C.getPlatform()==='android')) return;
+    var P=(C.Plugins && C.Plugins.AudioRoute) || (C.registerPlugin ? (window.__arP || (window.__arP=C.registerPlugin('AudioRoute'))) : null);
+    if(P && P.setActive){ var r=P.setActive({on:on}); if(r && r.catch) r.catch(function(){}); } }catch(e){}
+}
 function rtcShow(){
   if(!RTC.on) return;
+  audioRoute(RTC.micOn || RTC.camOn || RTC.seats.some(function(q){ var s=(RTC.st && RTC.st[q])||{}; return s.m || s.c; }));
   rtcStatTick();
   var bad=[];
   RTC.seats.forEach(function(q){
@@ -4453,6 +4461,7 @@ function rtcStop(){
   RTC.unsubs.forEach(function(u){ try{ u(); }catch(e){} }); RTC.unsubs=[];
   Object.keys(RTC.pcs).forEach(function(q){ try{ RTC.pcs[q].close(); }catch(e){} }); RTC.pcs={};
   [RTC.mic,RTC.cam].forEach(function(t){ if(t) t.stop(); }); RTC.mic=RTC.cam=null; RTC.micOn=RTC.camOn=false;
+  audioRoute(false);
   var bar=$('#vc'); if(bar) bar.hidden=true;
 }
 
