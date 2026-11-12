@@ -96,7 +96,7 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .chip{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;white-space:nowrap}
 .chip.acc{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .chip.red{color:var(--red)}
-.rsym{color:var(--red)}
+.rsym{color:var(--red)}.bsym{color:var(--ink)}
 .txt{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:var(--surface);color:inherit;margin:6px 0}
 .chip.acc .rsym,.bpill.hi .rsym{background:var(--paper);border-radius:5px;padding:0 3px}
 .tsym{background:var(--paper);color:var(--blk);border-radius:8px;padding:0 6px;line-height:1.35;font-size:15px}
@@ -531,7 +531,7 @@ var tStr = function(c){ return 7 - TRUMP.indexOf(c.r); };
 var pStr = function(c){ return 7 - PLAIN.indexOf(c.r); };
 var tens = function(x){ return Math.floor((x+3)/10); };
 var esc = function(s){ return String(s).replace(/[&<>]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); };
-var colSyms = function(t){ return String(t).replace(/([♥♦])/g,'<span class="rsym">$1</span>'); };
+var colSyms = function(t){ return String(t).replace(/([♥♦])/g,'<span class="rsym">$1</span>').replace(/([♠♣])/g,'<span class="bsym">$1</span>'); };
 var symHTML = function(s){ return '<span style="'+(isRed(s)?'color:var(--red)':'')+'">'+SYM[s]+'</span>'; };
 var COACH = true;
 var store = {
