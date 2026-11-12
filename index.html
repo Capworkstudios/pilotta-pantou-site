@@ -1538,7 +1538,7 @@ function humanBid(high,canK){
   var suit = SUITS.slice().sort(function(a,b){ return counts[b]-counts[a]; })[0];
   var sug = COACH ? coachBid(high,canK) : null;
   if(sug && sug.act.type==='bid'){ val=Math.max(min,Math.min(max,sug.act.val)); suit=sug.act.s; }
-  var h = (high ? '' : '<div class="hint">Δεν έχει γίνει άνοιγμα ακόμα. Ελάχιστη 80.</div>')
+  var h = ''
     + logHTML()
     + '<div class="row"><button class="btn'+(sug&&sug.act.type==='pass'?' tip':'')+'" data-a="pass" type="button">Πάσο</button>'+(canK?'<button class="btn warn" data-a="klisto" type="button">Κλειστό</button>':'')+'</div>'
     + '<div class="row stepper"><button class="btn arr" id="bm5" type="button" aria-label="Μείον 50">«</button><button class="btn arr" id="bm1" type="button" aria-label="Μείον 10">‹</button><output id="bv">'+val+'</output><button class="btn arr" id="bp1" type="button" aria-label="Συν 10">›</button><button class="btn arr" id="bp5" type="button" aria-label="Συν 50">»</button></div>'
