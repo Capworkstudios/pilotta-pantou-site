@@ -1846,7 +1846,7 @@ async function playTricks(){
     for(var i=0;i<4;i++){
       var p=(leader+i)%4; G.active=p;
       if(t===0){
-        if(p===G.me){ G.humanAnn = AUTO ? autoAnn() : 0; if(COACH && G.decl[G.me].total>0) G.annVal=bestMeld(G.decl[G.me].melds).pts; }
+        if(p===G.me){ G.humanAnn = AUTO ? autoAnn() : 0; G.annVal = G.decl[G.me].total>0 ? bestMeld(G.decl[G.me].melds).pts : 20; }
         else if(!(MP.on && MP.ctl[p]==='remote') && G.decl[p].total>0){ announceFor(p); await sleep(800); }
       }
       render();
