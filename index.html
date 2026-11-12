@@ -1642,7 +1642,7 @@ function logRound(S){
       hands:G.orig.map(function(h){ return h.map(cid); }),
       trump:G.trump, bid:{p:G.bid.p,val:G.bid.val,s:G.bid.s}, mult:G.mult,
       bids:G.bidLog.map(function(x){ return [x.p,x.t,x.bid?x.val:0,x.s||'']; }),
-      decl:G.decl.map(function(d){ return d.total; }), humanAnn:G.humanAnn||0, declWinner:G.contest?G.contest.winner:null,
+      decl:G.decl.map(function(d){ return d.total; }), dlost:(G.dlost||[0,0,0,0]).slice(), humanAnn:G.humanAnn||0, declWinner:G.contest?G.contest.winner:null,
       pil:G.pil.slice(), tricks:G.tlog,
       result:{made:S.made,capo:S.capo,anapodo:S.anapodo,raw:S.raw,tot:S.tot,declTot:S.declTot,pilPts:S.pil,need:S.need,bidTeam:S.b}
     };
@@ -1749,9 +1749,9 @@ function startReveal(){
     var d=G.decl[p], a=isMe?G.humanAnn:(G.ann[p]||0), who=MP.on?nm(p):'', pre=MP.on?(who+' δήλωσε '):'Δήλωσες ';
     if(a>0){
       var top = d.melds.length ? bestMeld(d.melds).pts : 0;
-      if(a!==top){ notes.push(MP.on ? (who+' δήλωσε '+a+' αλλά η ψηλότερη δήλωσή του είναι άλλη. Δεν μετράει.') : 'Δήλωσες '+a+' αλλά η ψηλότερη δήλωσή σου είναι άλλη. Δεν μετράει.'); G.decl[p]={melds:[],total:0}; }
+      if(a!==top){ notes.push(MP.on ? (who+' δήλωσε '+a+' αλλά η ψηλότερη δήλωσή του είναι άλλη. Δεν μετράει.') : 'Δήλωσες '+a+' αλλά η ψηλότερη δήλωσή σου είναι άλλη. Δεν μετράει.'); G.decl[p]={melds:[],total:0}; G.dlost[p]='wrong'; }
     } else if(d.total>0){
-      notes.push(MP.on ? (who+' δεν δήλωσε τίποτα, οπότε η δήλωσή του δεν μετράει.') : 'Δεν δήλωσες τίποτα, οπότε η δήλωσή σου δεν μετράει.'); G.decl[p]={melds:[],total:0};
+      notes.push(MP.on ? (who+' δεν δήλωσε τίποτα, οπότε η δήλωσή του δεν μετράει.') : 'Δεν δήλωσες τίποτα, οπότε η δήλωσή σου δεν μετράει.'); G.decl[p]={melds:[],total:0}; G.dlost[p]='none';
     }
   }
   note=notes.join(' ');
@@ -1855,6 +1855,7 @@ async function claimRest(t0,p){
 }
 async function playTricks(){
   if(!G.pvoid) G.pvoid=[{},{},{},{}];
+  if(!G.dlost) G.dlost=[0,0,0,0];
   var leader=(G.dealer+1)%4, rv=$('#reveal');
   for(var t=0;t<8;t++){
     G.trick=[]; G.trickNo=t; G.winSeat=-1;
@@ -1889,14 +1890,14 @@ async function playTricks(){
         var rp=await mpRemoteAct(p,'play',{legal:L.map(cid),sh:shF?1:0});
         if(shF){
           if(!rp || rp.sh){ G.rev[p]=true; toast(nm(p)+' δείχνει τη δήλωσή του',1100); rv.innerHTML=revealHTML(G.revealNote); rv.hidden=false; }
-          else { G.decl[p]={melds:[],total:0}; G.forfeit=true; toast(nm(p)+' δεν έδειξε τη δήλωση. Χάνεται.',1600); }
+          else { G.decl[p]={melds:[],total:0}; G.dlost[p]='noshow'; G.forfeit=true; toast(nm(p)+' δεν έδειξε τη δήλωση. Χάνεται.',1600); }
         }
         if(t===0){ var ra=rp ? (parseInt(rp.ann,10)||0) : 0; G.ann[p]=ra; if(ra>0) toast(nm(p)+' δηλώνει '+ra,1100); }
         card = (rp && L.filter(function(c){ return cid(c)===rp.c; })[0]) || botChoose(p,hand,L);
       }
       else { waitPanel(nm(p)+' παίζει…'); await sleep(650); card=botChoose(p,hand,L); }
       if(p===G.me && t===1 && G.needShow && !G.shown){
-        G.decl[G.me]={melds:[],total:0}; G.forfeit=true; G.needShow=false;
+        G.decl[G.me]={melds:[],total:0}; G.dlost[G.me]='noshow'; G.forfeit=true; G.needShow=false;
         toast('Δεν έδειξες τη δήλωση. Χάνεται.',1600,nm(G.me)+' δεν έδειξε τη δήλωση. Χάνεται.');
       }
       if(G.trick.length && card.s!==G.trick[0].c.s) G.void[p][G.trick[0].c.s]=true;
@@ -2014,7 +2015,7 @@ async function mpRoundEnd(S){
 }
 async function playRound(){
   G.round++;
-  G.early=false; G.trump=null; G.bid=null; G.mult=1; G.aceBack=null; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.aceSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
+  G.early=false; G.dlost=[0,0,0,0]; G.trump=null; G.bid=null; G.mult=1; G.aceBack=null; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.aceSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
   $('#reveal').hidden=true; $('#reveal').innerHTML='';
   var d=shuffle(newDeck());
   for(var p=0;p<4;p++){ G.hands[p]=d.slice(p*8,p*8+8); sortHand(G.hands[p],null); }
