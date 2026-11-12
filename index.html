@@ -805,7 +805,10 @@ function botKlisto(p,hand,high){
   var gain=16+high.val*2/10;
   /* real games (429 rounds of 5-9 Nov 2026): a «Κλειστό» was right only 43% of the time. Holding the Jack with at least one more trump,
      against a bid of 100 or more, it was right 68% of the time; without the Jack, with a single trump or against 80/90, mostly wrong */
-  if(!(mt.length>=2 && mt.some(function(c){ return c.r==='J'; }) && high.val>=100)) return false;
+  /* 1160 rounds up to 12 Nov: with 3 or more trumps including the Jack, or 4 or more trumps, against a bid of 100 or more, the bid failed 60% of the time (n=51 in
+     both halves of the data). The older rule (2 trumps and the Jack) was only right 49% */
+  var hasJ=mt.some(function(c){ return c.r==='J'; });
+  if(!(high.val>=100 && ((mt.length>=3 && hasJ) || mt.length>=4))) return false;
   if(G.scores[p%2]+gain>=G.target && estB < high.val+5 && Math.random()<0.8) return true;
   return estB < high.val-20 && Math.random()<0.35;
 }
