@@ -3192,6 +3192,8 @@ async function frInfo(T,uid){
   var bd=pr.bd==='none' ? null : (pr.bd==='plus' && pr.pl) ? {b:'plus'} : (pr.bd && pr.bd!=='tier' && BADGES[pr.bd] && bs[pr.bd]) ? {b:pr.bd} : (t>=0 ? {b:'tier',t:t} : null);
   return {name:pr.username||'Παίκτης', av:AVS[pr.av] ? pr.av : 'crown', bd:bd};
 }
+/* a friend whose account was deleted has no profile any more: true only when the read worked and there is no username (a network error must never count as "gone") */
+async function frGone(T,uid){ try{ var p=await T.get('users/'+uid+'/profile'); return !(p && p.username); }catch(e){ return false; } }
 async function frName(T,uid){ var p=await T.get('users/'+uid+'/profile').catch(function(){ return null; }); return (p && p.username) || 'Παίκτης'; }
 async function frCount(){ var T=acctT(); await T.init(); var v=await T.get('friendReq/'+ACCT.user.uid); return v ? Object.keys(v).length : 0; }
 async function frAdd(name){
@@ -3262,8 +3264,8 @@ function showFr(back,msg,ok){
       await T.init();
       var rq=(await T.get('friendReq/'+me))||{}, fr=(await T.get('friends/'+me))||{};
       var reqs=[], fl=[];
-      for(var a in rq) reqs.push({uid:a,name:await frName(T,a)});
-      await Promise.all(Object.keys(fr).map(async function(b){ if(await T.get('users/'+b+'/hib').catch(function(){ return null; })) return; var s=null; try{ s=await T.get('stats/'+b); }catch(e){} var fi=await frInfo(T,b); fl.push({uid:b,name:fi.name,av:fi.av,bd:fi.bd,s:s}); }));
+      for(var a in rq){ if(await frGone(T,a)){ T.remove('friendReq/'+me+'/'+a).catch(function(){}); continue; } reqs.push({uid:a,name:await frName(T,a)}); }
+      await Promise.all(Object.keys(fr).map(async function(b){ if(await frGone(T,b)){ frRemove(b).catch(function(){}); return; } if(await T.get('users/'+b+'/hib').catch(function(){ return null; })) return; var s=null; try{ s=await T.get('stats/'+b); }catch(e){} var fi=await frInfo(T,b); fl.push({uid:b,name:fi.name,av:fi.av,bd:fi.bd,s:s}); }));
       fl.sort(function(x,y){ return x.name.toLowerCase()<y.name.toLowerCase()?-1:1; });
       var L=sh.querySelector('#frL'); if(!L || !sh.isConnected) return;
       var h='';
@@ -3312,6 +3314,7 @@ async function lbFetch(sc,per){
     var fr=(await T.get('friends/'+me))||{}, ids=Object.keys(fr).concat([me]);
     for(var i=0;i<ids.length;i++){
       var uid=ids[i], s=null;
+      if(uid!==me && await frGone(T,uid)){ frRemove(uid).catch(function(){}); continue; }
       if(uid!==me && await T.get('users/'+uid+'/hib').catch(function(){ return null; })) continue;
       if(uid===me) s=stPayload(); else { try{ s=await T.get('stats/'+uid); }catch(e){} }
       var nm=uid===me ? ACCT.user.username : await frName(T,uid), c=s;
