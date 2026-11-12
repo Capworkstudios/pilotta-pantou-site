@@ -2670,7 +2670,7 @@ function devKicked(uid){
   });
 }
 function loggedIn(){ return !!(ACCT.user && ACCT.user.uid); }
-function acctSave(u){ if(ACCT.devUn && (!u || u.uid!==ACCT.devUid)){ try{ ACCT.devUn(); }catch(e){} ACCT.devUn=null; ACCT.devUid=null; } if(u) ACCT.devNew=true; if(ACCT.plusUn && (!u || u.uid!==ACCT.plusUid)){ try{ ACCT.plusUn(); }catch(e){} ACCT.plusUn=null; ACCT.plusUid=null; ACCT.plus=undefined; } if(typeof stReset==='function' && (!u || !ACCT.user || ACCT.user.uid!==u.uid)) stReset(); ACCT.user=u; try{ if(u) localStorage.setItem('pil.acct',JSON.stringify(u)); else localStorage.removeItem('pil.acct'); }catch(e){} if(u && u.username){ store.set('pil.name',u.username); if(typeof stLoad==='function') stLoad(); } }
+function acctSave(u){ if(ACCT.devUn && (!u || u.uid!==ACCT.devUid)){ try{ ACCT.devUn(); }catch(e){} ACCT.devUn=null; ACCT.devUid=null; } if(u) ACCT.devNew=true; if(ACCT.plusUn && (!u || u.uid!==ACCT.plusUid)){ try{ ACCT.plusUn(); }catch(e){} ACCT.plusUn=null; ACCT.plusUid=null; ACCT.plus=undefined; } if(typeof stReset==='function' && (!u || !ACCT.user || ACCT.user.uid!==u.uid)) stReset(); ACCT.user=u; if(u) setTimeout(function(){ try{ prefsSync(); }catch(e){} },1500); try{ if(u) localStorage.setItem('pil.acct',JSON.stringify(u)); else localStorage.removeItem('pil.acct'); }catch(e){} if(u && u.username){ store.set('pil.name',u.username); if(typeof stLoad==='function') stLoad(); } }
 function trialUsed(){ return parseInt(store.get('pil.trial'),10)||0; }
 var TRIAL_MAX=2;
 function acctKey(n){ return String(n).toLowerCase().replace(/ς/g,'σ').normalize('NFD').replace(/[̀-ͯ]/g,''); }
@@ -2722,6 +2722,27 @@ function acctErr(e){
   return 'Κάτι πήγε στραβά. Έλεγξε το internet και δοκίμασε ξανά.';
 }
 function acctT(){ return mpTransport(); }
+/* appearance settings follow the account: after a reinstall they come back by themselves. Only values that differ from the default are saved to users/UID/prefs; on a phone where a setting is still the default, the cloud value is applied (and the app reloads once). Nothing is saved before the first check has finished, so a fresh install never overwrites the cloud with defaults. */
+var PREFD={'pil.felt':'green','pil.pbg':'plain','pil.back':'classic','pil.snd':'1','pil.anim':'1','pil.coach':'0','pil.emoOff':'0','pil.emo':null}, PREFT=null, PREFOK=false, PREFC=null;
+function prefsIsDef(k,v){ return v===null || v===undefined || v===PREFD[k]; }
+function prefsLocal(){ var o={}; Object.keys(PREFD).forEach(function(k){ var v=store.get(k); if(!prefsIsDef(k,v)) o[k.slice(4)]=String(v).slice(0,200); }); return o; }
+function prefsPush(){
+  if(!PREFOK) return;
+  clearTimeout(PREFT);
+  PREFT=setTimeout(async function(){ try{ if(!(typeof loggedIn==='function' && loggedIn())) return; var T=acctT(); await T.init(); var o=prefsLocal(); if(JSON.stringify(o)===JSON.stringify(PREFC||{})) return; await T.set('users/'+ACCT.user.uid+'/prefs',Object.keys(o).length?o:null); PREFC=o; }catch(e){} },1500);
+}
+async function prefsSync(){
+  try{
+    if(!(typeof loggedIn==='function' && loggedIn())) return;
+    var T=acctT(); await T.init(); var path='users/'+ACCT.user.uid+'/prefs', cloud=await T.get(path), got=false;
+    if(cloud && typeof cloud==='object') Object.keys(cloud).forEach(function(k){ var kk='pil.'+k; if(kk in PREFD && typeof cloud[k]==='string' && prefsIsDef(kk,store.get(kk)) && store.get(kk)!==cloud[k]){ store.set(kk,cloud[k].slice(0,200)); got=true; } });
+    if(got){ var fl=false; try{ fl=sessionStorage.getItem('pil.pfx'); sessionStorage.setItem('pil.pfx','1'); }catch(e){} if(!fl){ location.reload(); return; } }
+    PREFOK=true; PREFC=(cloud && typeof cloud==='object') ? cloud : {};
+    var now=prefsLocal(); if(JSON.stringify(cloud||{})!==JSON.stringify(now)) prefsPush();
+  }catch(e){}
+}
+try{ var _lsSet=Storage.prototype.setItem; Storage.prototype.setItem=function(k){ var r=_lsSet.apply(this,arguments); try{ if(this===window.localStorage && (k in PREFD)) prefsPush(); }catch(e){} return r; }; }catch(e){}
+
 /* Google sign-in inside the Android app: the native SocialLogin plugin (@capgo/capacitor-social-login v6) gives an idToken,
    Firebase signs in with it. On the web the popup flow below is used as before. */
 var GSI_WEB_CLIENT='180192913545-4b93fc25jshtpjp3fjkvd1cq7elkp9qh.apps.googleusercontent.com';
@@ -3380,7 +3401,7 @@ function showLb(back,o){
     })().catch(function(){ var L=sh.querySelector('#lbL'); if(L) L.innerHTML='<p class="hint" style="color:var(--red)">Δεν μπόρεσα να φορτώσω την κατάταξη. Έλεγξε το internet.</p>'; });
   });
 }
-if(LOGIN_ON && loggedIn()) setTimeout(function(){ stLoad().then(mpPendCheck).catch(function(){}); },0);
+if(LOGIN_ON && loggedIn()) setTimeout(function(){ stLoad().then(mpPendCheck).catch(function(){}); prefsSync(); },0);
 
 /* settings: language and the game coach */
 /* Appearance: table surface, background, card design, avatar, emotes */
