@@ -4143,7 +4143,20 @@ function mpLobby(name,onStart,back){
   function mySeat(){ for(var i=0;i<4;i++) if(seats[i] && seats[i].uid===MP.uid) return i; return -1; }
   function waitList(){ return Object.keys(waiting||{}).filter(function(u){ return !seats.some(function(s){ return s && s.uid===u; }); }); }
   /* host presses Start: the players who have not chosen a seat get a random free one, the seats still empty get bots */
+  /* ask the database what the table really looks like (the 'seat taken' message can be missed): true when something changed */
+  function tmo(p,ms){ return Promise.race([p,new Promise(function(r){ setTimeout(function(){ r(undefined); },ms); })]); }
+  async function refresh(){
+    try{
+      var vs=await tmo(Promise.all([0,1,2,3].map(function(i){ return T.get(mpBase()+'seat'+i); })),3000);
+      if(!vs || vs.some(function(v){ return v===undefined; })) return false;
+      var ch=false;
+      vs.forEach(function(v,i){ v=v||null; if(JSON.stringify(v)!==JSON.stringify(seats[i])){ seats[i]=v; ch=true; } });
+      if(MP.host){ var w=await tmo(T.get(mpBase()+'join'),3000); if(w!==undefined){ w=w||{}; if(JSON.stringify(w)!==JSON.stringify(waiting)){ waiting=w; ch=true; } } }
+      return ch;
+    }catch(e){ return false; }
+  }
   async function startNow(target){
+    await refresh();
     var final=seats.slice(), free=[0,1,2,3].filter(function(i){ return !final[i]; }), w=waitList();
     for(var a=free.length-1;a>0;a--){ var b=Math.floor(Math.random()*(a+1)), t=free[a]; free[a]=free[b]; free[b]=t; }
     for(var k=0;k<w.length && free.length;k++){
@@ -4151,7 +4164,12 @@ function mpLobby(name,onStart,back){
       var ok=await T.claim(mpBase()+'seat'+s,e);
       if(ok){ final[s]=e; T.remove(mpBase()+'join/'+w[k]); } else k--;
     }
-    free.forEach(function(s){ final[s]={uid:'bot',name:'Bot '+(s+1),bot:1}; T.claim(mpBase()+'seat'+s,final[s]); });
+    /* an empty seat gets a bot only if nobody took it in the meantime; if a player is there, that player keeps the seat */
+    for(var fi=0;fi<free.length;fi++){
+      var s2=free[fi], bot={uid:'bot',name:'Bot '+(s2+1),bot:1}, got=false;
+      try{ got=await T.claim(mpBase()+'seat'+s2,bot); }catch(e){}
+      if(got) final[s2]=bot; else { var cur=null; try{ cur=await T.get(mpBase()+'seat'+s2); }catch(e){} final[s2]=cur||bot; }
+    }
     mpHostStart(final,target,onStart,leave);
   }
   function draw(){
@@ -4222,6 +4240,8 @@ function mpLobby(name,onStart,back){
   }
   unsubs.push(T.on(mpBase()+'meta',onMeta));
   /* safety net for a guest: if the 'game started' message from the host is missed (it was seen with the host on the phone app and the guest in a browser), ask for the table state every 2.5 s */
+  /* the host asks for the seats and the waiting list the same way (a friend who sat down must not be missed when the host presses Start) */
+  if(MP.host && !MP.auto && !MP.nearby) pollIv=setInterval(function(){ if(started){ clearInterval(pollIv); return; } refresh().then(function(ch){ if(ch && !started) draw(); }); },2500);
   if(!MP.host && !MP.auto) pollIv=setInterval(function(){ if(started){ clearInterval(pollIv); return; } try{ var r=T.get(mpBase()+'meta'); if(r && r.then) r.then(function(v){ if(!started) onMeta(v); }).catch(function(){}); }catch(e){} },2500);
 }
 function mpHostStart(seats,target,onStart,leave){
