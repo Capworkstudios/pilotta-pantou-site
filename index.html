@@ -295,7 +295,7 @@ body.page .app{display:none}
 .stepper output{flex:1 1 auto!important}
 .mc{display:inline-flex;gap:3px;vertical-align:middle;--cw:30px;margin:2px 4px 2px 0}
 .mc .card{border-radius:5px}
-.loglist{flex-direction:row;flex-wrap:wrap;gap:0 12px;max-height:36px;overflow-y:auto;line-height:17px}.loglist div{line-height:17px;white-space:nowrap}
+.loglist{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,17px);grid-auto-columns:max-content;gap:0 14px;height:36px;overflow-x:auto;overflow-y:hidden;line-height:17px}.loglist div{line-height:17px;white-space:nowrap}
 .coach{border-left:4px solid var(--good);background:var(--bg);border-radius:8px;padding:8px 10px;font-size:14px}
 .coach b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
 .btn.tip{box-shadow:0 0 0 2px var(--good)}
@@ -1474,7 +1474,7 @@ $('#contract').addEventListener('click',function(e){
   openSheet('<h2>Ανοίγματα</h2>'+(G.bidLog.length?'<div class="log">'+G.bidLog.map(function(x){ return '<div>'+esc(nm(x.p))+': '+colSyms(x.t)+'</div>'; }).join('')+'</div>':'<p>Καμία.</p>')+'<button class="btn primary" id="bClose" type="button">Κλείσιμο</button>',function(sh){ sh.querySelector('#bClose').addEventListener('click',closeSheet); });
 });
 function render(){ renderScore(); renderSeats(); renderTrick(); renderHand(); renderContract(); if(typeof mpSchedule==='function') mpSchedule(); }
-function setPanel(html,bind){ var p=$('#panel'); p.innerHTML=html; var ll=p.querySelector('.loglist'); if(ll) ll.scrollTop=ll.scrollHeight; if(bind) bind(p); }
+function setPanel(html,bind){ var p=$('#panel'); p.innerHTML=html; var ll=p.querySelector('.loglist'); if(ll){ ll.scrollTop=ll.scrollHeight; ll.scrollLeft=ll.scrollWidth; } if(bind) bind(p); }
 function logHTML(){
   return '<div class="log loglist">'+G.bidLog.map(function(x){ return '<div>'+esc(nm(x.p))+': '+colSyms(x.t)+'</div>'; }).join('')+'</div>';
 }
