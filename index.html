@@ -98,9 +98,6 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .chip.red{color:var(--red)}
 .rsym{color:var(--red)}.bsym{color:var(--ink)}
 .chip.acc .rsym,.bpill.hi .rsym{background:var(--paper);border-radius:5px;padding:0 3px}
-.chip.acc .bsym,.bpill.hi .bsym{color:var(--accent-ink)}
-.bpill .bsym,.tg .bsym{color:var(--blk);text-shadow:0 0 1px #fff,0 0 2px #fff,0 0 3px #fff}
-.bpill.hi .bsym{color:var(--accent-ink);text-shadow:none}
 .txt{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:var(--surface);color:inherit;margin:6px 0}
 .tsym{background:var(--paper);color:var(--blk);border-radius:8px;padding:0 6px;line-height:1.35;font-size:15px}
 .reveal{background:var(--surface);border:1px dashed var(--accent);border-radius:12px;padding:8px 12px;font-size:13px}
@@ -1563,7 +1560,7 @@ function humanBid(high,canK){
     + logHTML()
     + '<div class="row"><button class="btn'+(sug&&sug.act.type==='pass'?' tip':'')+'" data-a="pass" type="button">Πάσο</button>'+(canK?'<button class="btn warn" data-a="klisto" type="button">Κλειστό</button>':'')+'</div>'
     + '<div class="row stepper"><button class="btn arr" id="bm5" type="button" aria-label="Μείον 50">«</button><button class="btn arr" id="bm1" type="button" aria-label="Μείον 10">‹</button><output id="bv">'+val+'</output><button class="btn arr" id="bp1" type="button" aria-label="Συν 10">›</button><button class="btn arr" id="bp5" type="button" aria-label="Συν 50">»</button></div>'
-    + '<div class="row suits" role="group" aria-label="Κόζια">'+SUITS.map(function(s){ return '<button type="button" class="sbtn'+(isRed(s)?' r':'')+(s===suit?' sel':'')+'" data-s="'+s+'" aria-label="'+SNAME[s]+'"><span class="'+(isRed(s)?'rsym':'bsym')+'">'+SYM[s]+'</span></button>'; }).join('')+'</div>'
+    + '<div class="row suits" role="group" aria-label="Κόζια">'+SUITS.map(function(s){ return '<button type="button" class="sbtn'+(isRed(s)?' r':'')+(s===suit?' sel':'')+'" data-s="'+s+'" aria-label="'+SNAME[s]+'">'+SYM[s]+'</button>'; }).join('')+'</div>'
     + '<button class="btn primary" id="doBid" type="button"></button>'
     + (sug?coachHTML(sug.text):'');
   return new Promise(function(res){
