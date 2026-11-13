@@ -1785,8 +1785,8 @@ function pilotaCheck(p,c){
 }
 
 /* the leader is sure to win every remaining trick, whatever the others play, so the round can end here:
-   - his trumps all beat every trump left in the other hands, and nobody else holds more trumps than he does
-     (he leads them first, so the others must follow with theirs and run out of trumps);
+   - his trumps all beat every trump left in the other hands, and nobody else holds more trumps than he does;
+     if the others still hold trumps, his whole hand must be trumps (so no order of play can go wrong);
    - with no trumps of his own, nobody else may hold a trump;
    - in every other suit, each of his cards beats every card of that suit left in the other hands.
    This is checked on the real hands, so it never ends a round that could still go differently. */
@@ -1797,6 +1797,7 @@ function canClaim(p){
   if(myT.length){
     if(othT.length && Math.min.apply(null,myT.map(tStr)) <= Math.max.apply(null,othT.map(tStr))) return false;
     if([1,2,3].some(function(i){ return G.hands[(p+i)%4].filter(function(c){ return c.s===tr; }).length > myT.length; })) return false;
+    if(othT.length && myT.length<h.length) return false;   /* others still hold trumps and he holds other suits too: the order he plays matters (a plain card could be trumped), so it is played out */
   } else if(othT.length) return false;
   return SUITS.every(function(s){
     if(s===tr) return true;
