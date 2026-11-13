@@ -1023,6 +1023,8 @@ function botPick(p,hand,L){
       var pool = trumps.length>1 ? trumps.filter(function(c){ return c.r!=='9'; }) : trumps;
       /* my partner bid in the trump suit: he shows the Jack or the 9 there, so lead a low trump towards him even with weak trumps */
       var ptBidTr=G.bidLog.some(function(x){ return x.bid && x.p===partner && x.s===tr; });
+      /* my partner bid in the trump suit (he usually holds the Jack) and I have neither the Jack nor the 9: lead my highest trump, so an opponent holding the 9 has to put it out and my partner takes it with the Jack */
+      if(ptBidTr && G.bid.p!==p && !has(hand,'J',tr) && !has(hand,'9',tr) && !G.played.has(cid({r:'J',s:tr}))) return maxBy(trumps,tStr);
       if(G.bid.p!==p || ptBidTr || trumps.some(function(c){ return c.r==='J' || c.r==='9'; }) || trumps.length>=3) return minBy(pool,tStr);
     }
     /* my partner said «Κλειστό»: he usually holds the strong trumps. Before any trump is out, lead a trump (the 10 if I have it) so the bidder has to put out his 9 or Ace, and my partner takes it with the Jack */
@@ -1158,7 +1160,11 @@ function botPick(p,hand,L){
       });
       if(fb) return fb.c;
     }
-    if(last || (isMaster(wc,p) && !cutRisk)) return maxBy(L,function(c){ return cpts(c,tr)*100 - (c.s===tr?tStr(c):pStr(c)); });
+    if(last || (isMaster(wc,p) && !cutRisk)){
+      /* loading points on the partner's trick: do not spend a sure-winning trump (the Jack, or the 9 once the Jack is out) when other cards can carry the points, keep it for later */
+      var Lm=L.filter(function(c){ return !(c.s===tr && isMaster(c,p)); });
+      return maxBy(Lm.length ? Lm : L,function(c){ return cpts(c,tr)*100 - (c.s===tr?tStr(c):pStr(c)); });
+    }
     return minBy(L,cost);
   }
   /* last to play, holding the ace and small cards of the suit while the 10 is still out: give the trick away so the ace takes the 10 later */
