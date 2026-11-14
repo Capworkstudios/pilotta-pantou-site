@@ -2824,13 +2824,26 @@ var TRIAL_MAX=2;
 /* AdMob (Android app only; the web site has no ads). Account: Capwork Studios. Needs a build made with ADS=1 (see tools/patch_manifest.py).
    ADS_TEST=true uses Google's public test ads (for trying it on a phone without risking the real account). */
 var ADS_ON=true, ADS_TEST=false;
-var ADS_UNITS = ADS_TEST ? {rewarded:'ca-app-pub-3940256099942544/5224354917', banner:'ca-app-pub-3940256099942544/6300978111'}
-                         : {rewarded:'ca-app-pub-5722074214491255/6305355090', banner:'ca-app-pub-5722074214491255/2421950404'};
+var ADS_UNITS = ADS_TEST ? {rewarded:'ca-app-pub-3940256099942544/5224354917', banner:'ca-app-pub-3940256099942544/6300978111', interstitial:'ca-app-pub-3940256099942544/1033173712'}
+                         : {rewarded:'ca-app-pub-5722074214491255/6305355090', banner:'ca-app-pub-5722074214491255/2421950404', interstitial:'ca-app-pub-5722074214491255/9943850228'};
 function adsPlugin(){ try{ return (ADS_ON && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Ads) || null; }catch(e){ return null; } }
 /* European consent (UMP) and the ads SDK; resolves true when ads may be requested */
 async function adsInit(){ var P=adsPlugin(); if(!P) return false; try{ var r=await P.init(); return !!(r && r.ready); }catch(e){ return false; } }
 /* a rewarded ad the player chose to watch; resolves true when he watched it to the end */
 async function adsRewarded(){ var P=adsPlugin(); if(!P) return false; try{ if(!(await adsInit())) return false; var r=await P.rewarded({unit:ADS_UNITS.rewarded}); return !!(r && r.rewarded); }catch(e){ return false; } }
+/* a full-screen ad at the end of every 2nd finished game (bots, offline and online); not for Pilotta Plus, only in the app.
+   It is shown after the player has seen the result, when he taps «Νέο παιχνίδι» or «Κύριο μενού»; with no ad within 5 seconds the game goes on at once */
+async function adsInterstitial(){ var P=adsPlugin(); if(!P) return false; try{ if(!(await adsInit())) return false; var r=await P.interstitial({unit:ADS_UNITS.interstitial}); return !!(r && r.shown); }catch(e){ return false; } }
+function adsGameCount(){
+  if(!adsPlugin() || G.adCounted || G.over===null) return;
+  G.adCounted=true;
+  var n=(parseInt(store.get('pil.gend'),10)||0)+1; store.set('pil.gend',String(n));
+  G.adDue=(n%2===0);
+}
+async function adsAfterGame(go){
+  if(G.adDue && !hasPlus()){ G.adDue=false; try{ await adsBanner(false); await adsInterstitial(); }catch(e){} }
+  go();
+}
 /* the consent choices again (EU/UK); resolves true when a form was shown */
 async function adsPrivacy(){ var P=adsPlugin(); if(!P) return false; try{ await adsInit(); var r=await P.privacy(); return !!(r && r.required); }catch(e){ return false; } }
 /* the banner at the bottom of the main menu: not for Pilotta Plus, only in the app, only after the consent */
@@ -3661,9 +3674,10 @@ function showGameMenu(){
 function endSheet(){
   if(AFKW.el){ clearInterval(AFKW.t); AFKW.el.remove(); AFKW.el=null; } AFKW.mode='';
   var w=G.over, sc=G.scores;
+  adsGameCount();
   openSheet('<h2>'+(w===US()?'Κερδίσατε!':'Αυτή τη φορά κέρδισαν οι αντίπαλοι')+'</h2><p>Τελικό σκορ: Εμείς '+sc[US()]+' · Αυτοί '+sc[1-US()]+'</p>'+stLastHtml()+'<button class="btn primary big" id="again" type="button">Νέο παιχνίδι</button>'+(MP.on && !MP.auto ? '<button class="btn big" id="eRe" type="button">Ρεβάνς</button>' : '')+'<button class="btn big" id="eMain" type="button">Κύριο μενού</button>'+(MP.on && !MP.auto ? '<p class="hint" id="eNote"></p>' : ''),function(sh){
-    sh.querySelector('#again').addEventListener('click',function(){ if(MP.on) mpQuitTable('new'); else showNew(endSheet,startFresh); });
-    sh.querySelector('#eMain').addEventListener('click',function(){ if(MP.on) mpQuitTable('main'); else location.reload(); });
+    sh.querySelector('#again').addEventListener('click',function(){ adsAfterGame(function(){ if(MP.on) mpQuitTable('new'); else showNew(endSheet,startFresh); }); });
+    sh.querySelector('#eMain').addEventListener('click',function(){ adsAfterGame(function(){ if(MP.on) mpQuitTable('main'); else location.reload(); }); });
     var re=sh.querySelector('#eRe'); if(re) re.addEventListener('click',function(){ re.disabled=true; mpRematch(); });
     if(MP.on && !MP.host && !MP.auto) mpEndWatch(sh);
   });
@@ -4064,7 +4078,7 @@ setInterval(function(){
   if(idle>=20000 || n>0 && AFKW.mode==='warn') mpClientWarn({warn:1,sk:n,local:1},G.me);
 },1000);
 async function mpClientRun(code,seat,uid){
-  MP.on=true; MP.host=false; MPC=true; MP.code=code; G.me=seat; COACH=false; MP.pendOn=false; MP.gone=false; G.over=null;
+  MP.on=true; MP.host=false; MPC=true; MP.code=code; G.me=seat; COACH=false; MP.pendOn=false; MP.gone=false; G.over=null; G.adCounted=false;
   mpClientWatch(uid);
   closeSheet(); setPage(false);
   var last={n:0,bl:0,tk:0,toast:0,round:-1,sum:0,over:null,df:[0,0,0,0]}, handled=0, myHand=[], curS=null, pubV=null, busy=false;
@@ -4875,7 +4889,7 @@ async function main(){
 /* one whole game (also used again for a rematch of an online table) */
 async function runGame(mode){
   if(mode==='new'){
-    G.scores=[0,0]; G.round=0; G.over=null; store.del('pil.state');
+    G.scores=[0,0]; G.round=0; G.over=null; G.adCounted=false; store.del('pil.state');
     var cut=SUITS[Math.floor(Math.random()*4)];
     G.dealer=SUITS.indexOf(cut);
     G.cut={s:cut,r:RANKS[Math.floor(Math.random()*RANKS.length)],d:G.dealer,k:Math.random().toString(36).slice(2,8)};
