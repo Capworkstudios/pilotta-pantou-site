@@ -152,7 +152,7 @@ plus_off = 0
 if not sub_err:
     for sid2, u in ended_now:
         root.update({'stripe/%s/sub/%s/end' % (mode, sid2): int(time.time())})
-        if u and not active_by_uid.get(u) and not db.reference('users/%s/plusLife' % u).get():
+        if u and not active_by_uid.get(u) and not db.reference('users/%s/plusLife' % u).get() and not db.reference('users/%s/plusPlay' % u).get():   # plusPlay: an active Google Play subscription (jobs/play_job.py)
             root.update({'users/%s/plus' % u: False})
             plus_off += 1
 print('subscriptions: known %d, ended now %d, Plus removed %d, errors %d' % (len(subs), len(ended_now), plus_off, sub_err))
