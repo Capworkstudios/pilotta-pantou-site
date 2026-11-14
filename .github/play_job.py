@@ -10,7 +10,10 @@ PSA = os.environ.get('PLAY_SA', '').strip()
 DB_URL = 'https://pilotta-anywhere-default-rtdb.europe-west1.firebasedatabase.app'
 PKG = 'app.pilotta.pantou'
 # product id -> (theme, needs Plus)
-PRODUCTS = {'theme_cafe': ('cafe', False), 'theme_cafe_plus': ('cafe', True)}
+PRODUCTS = {}
+for _t in ('cafe', 'neon', 'med', 'gold'):
+    PRODUCTS['theme_' + _t] = (_t, False)
+    PRODUCTS['theme_' + _t + '_plus'] = (_t, True)
 
 if not SA or not PSA:
     print('Secret PLAY_SA or FIREBASE_SA is not set: nothing to do.')
