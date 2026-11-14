@@ -48,7 +48,7 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .hav .av{width:40px;height:40px;margin:0;flex:none}
 .hshop{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:14px;z-index:6;display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 15px var(--f-body);cursor:pointer}
 .hshop .shi{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center}
-.hon{position:absolute;top:calc(22px + env(safe-area-inset-top,0px));left:14px;z-index:6;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface);color:var(--ink);font:600 13px var(--f-body);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.hon{position:absolute;top:calc(60px + env(safe-area-inset-top,0px));left:14px;z-index:6;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface);color:var(--ink);font:600 13px var(--f-body);box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .fon{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:12px;font-weight:600;opacity:.9}.fon i,.ivl i{width:8px;height:8px;border-radius:50%;background:#2ecc71;flex:none}
 #hFr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}#hFr .fon{margin-left:0}
 [data-ch]{position:relative}.ub{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e53935;color:#fff;font:700 11px/18px var(--f-body);text-align:center}
@@ -4855,16 +4855,14 @@ function rtcBad(q){
   var s=(RTC.st && RTC.st[q])||{}, used=RTC.micOn||RTC.camOn||s.m||s.c, st=pc.connectionState;
   return !!used && (st==='failed' || ((st==='new'||st==='connecting') && RTC.t0[q] && Date.now()-RTC.t0[q]>25000));
 }
-/* Android (installed from Google Play): tell the player when a newer version exists. The native plugin AppUpdate asks Google Play. Once per version per day. */
+/* Android (installed from Google Play): tell the player when a newer version exists. The native plugin AppUpdate asks Google Play. Asked at every start; the message shows each time until the player updates. */
 function updateCheck(){
   try{ var C=window.Capacitor; if(!(C && C.getPlatform && C.getPlatform()==='android')) return;
     var P=(C.Plugins && C.Plugins.AppUpdate) || (C.registerPlugin ? (window.__upP || (window.__upP=C.registerPlugin('AppUpdate'))) : null);
     if(!P || !P.check) return;
     P.check().then(function(r){
       if(!r || !r.available) return;
-      var key='pp_upd', now=Date.now(), seen=null; try{ seen=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
-      if(seen && seen.v===r.versionCode && now-seen.t<86400000) return;
-      try{ localStorage.setItem(key,JSON.stringify({v:r.versionCode,t:now})); }catch(e){}
+      if(document.querySelector('.afkw')) return;
       var el=document.createElement('div'); el.className='afkw';
       el.innerHTML='<div class="afkbox"><h3>Νέα έκδοση</h3><p>Υπάρχει νέα έκδοση του παιχνιδιού. Θέλεις να ενημερώσεις τώρα;</p><div class="row"><button class="btn" data-a="no" type="button">Αργότερα</button><button class="btn primary" data-a="yes" type="button">Ενημέρωση</button></div></div>';
       el.addEventListener('click',function(ev){ var b=ev.target.closest && ev.target.closest('button'); if(!b) return; el.remove();
@@ -4873,7 +4871,7 @@ function updateCheck(){
     }).catch(function(){});
   }catch(e){}
 }
-setTimeout(updateCheck,4000);
+setTimeout(updateCheck,800);
 /* Android: while somebody's microphone or camera is on, the call sound must go to the loudspeaker (or to the headset), not to the earpiece. The native plugin AudioRoute does it. */
 function audioRoute(on){
   on=!!on; if(RTC.route===on) return; RTC.route=on;
