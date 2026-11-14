@@ -148,3 +148,13 @@ if not sub_err:
 print('subscriptions: known %d, ended now %d, Plus removed %d, errors %d' % (len(subs), len(ended_now), plus_off, sub_err))
 print('stripe (%s): paid sessions looked at %d, Plus given %d, subscriptions started %d, themes given %d, donations %d, to check by hand %d'
       % (mode, len(sessions), plus_n, subs_n, themes_n, gifts, skipped))
+
+# only numbers (the logs of a public repo are public): how many accounts have Plus now
+try:
+    ukeys = list((db.reference('users').get(shallow=True) or {}).keys())
+    n_plus = sum(1 for u in ukeys if db.reference('users/%s/plus' % u).get() is True)
+    n_life = sum(1 for u in ukeys if db.reference('users/%s/plusLife' % u).get() is True)
+    n_th = sum(1 for u in ukeys if db.reference('users/%s/themes' % u).get())
+    print('accounts: %d, with Plus %d (for ever %d), with a bought theme %d' % (len(ukeys), n_plus, n_life, n_th))
+except Exception:
+    print('accounts: count failed')
