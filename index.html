@@ -2103,7 +2103,7 @@ var GUEST_SEEN=false;
 function guestNote(back,next){
   var left=Math.max(0,TRIAL_MAX-trialUsed());
   if(!LOGIN_ON || loggedIn() || GUEST_SEEN || left<=0){ next(); return; }
-  GUEST_SEEN=true;
+  GUEST_SEEN=true; adsBanner(false);   /* no banner next to the sign-in choice; the main menu shows it again */
   openSheet('<h2>Συνέχισε ως επισκέπτης ή συνδέσου</h2>'
     +'<p>Χωρίς λογαριασμό μπορείς να παίξεις έως '+TRIAL_MAX+' παιχνίδια με bots'+(left<TRIAL_MAX?' (σου απομένουν '+left+')':'')+'.</p>'
     +'<p>Με λογαριασμό παίζεις online με φίλους, κρατάς στατιστικά και rating και εμφανίζεσαι στη γενική κατάταξη.</p>'
