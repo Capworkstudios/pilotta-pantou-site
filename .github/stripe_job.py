@@ -2,6 +2,7 @@
 Secrets: STRIPE_KEY = restricted key with read access to Checkout Sessions only; FIREBASE_SA = service account.
 The Payment Links of the app carry the account: client_reference_id = Firebase uid.
 A completed and paid Checkout Session of 2.99 EUR or more gives users/UID/plus = true; a smaller amount is a donation.
+The Payment Links of the themes (THEME_LINKS) give users/UID/themes/<theme> = true instead (the Plus-price link only when the account has Plus).
 Every session is handled once (stripe/s/SESSION_ID). Only numbers are printed: the logs of a public repo are public."""
 import json, os, re, sys, time, urllib.parse, urllib.request
 
@@ -10,6 +11,11 @@ SA = os.environ.get('FIREBASE_SA', '').strip()
 DB_URL = 'https://pilotta-anywhere-default-rtdb.europe-west1.firebasedatabase.app'
 PLUS_MIN = 299            # euro cents
 LOOKBACK = 3 * 86400      # first run, and overlap on every run: sessions of the last 3 days are looked at again
+# Payment Links of the themes (live mode): payment link id -> (theme, price in euro cents, needs Plus)
+THEME_LINKS = {
+    'plink_1Ubn6YBz82ezmpqsfHXhNTsu': ('cafe', 199, False),
+    'plink_1UbnAlBz82ezmpqs7q40mtnI': ('cafe', 99, True),     # the Plus price: only for accounts that have Pilotta Plus
+}
 UID_RE = re.compile(r'^[A-Za-z0-9]{20,64}$')
 
 if not KEY or not SA:
@@ -45,7 +51,7 @@ while True:
     after = page['data'][-1]['id']
 
 done = db.reference('stripe/%s/s' % mode).get(shallow=True) or {}
-newest, plus_n, gifts, skipped = int(last or 0), 0, 0, 0
+newest, plus_n, gifts, skipped, themes_n = int(last or 0), 0, 0, 0, 0
 for s in sessions:
     newest = max(newest, int(s.get('created') or 0))
     sid = s.get('id')
@@ -66,6 +72,18 @@ for s in sessions:
             ok_uid = False
     if ok_uid:
         rec['u'] = uid
+    tl = THEME_LINKS.get(s.get('payment_link') or '')
+    if tl:                             # a theme: never Plus, never a donation
+        theme, price, needs_plus = tl
+        rec['th'] = theme
+        if ok_uid and cur == 'eur' and amount >= price and (not needs_plus or root.child('users/%s/plus' % uid).get()):
+            root.update({'users/%s/themes/%s' % (uid, theme): True})
+            rec['given'] = True
+            themes_n += 1
+        else:
+            skipped += 1               # no account, another currency, too little paid, or the Plus price without Plus: look at it by hand
+        root.update({'stripe/%s/s/%s' % (mode, sid): rec})
+        continue
     if ok_uid and cur == 'eur' and amount >= PLUS_MIN:
         root.update({'users/%s/plus' % uid: True})
         rec['plus'] = True
@@ -76,5 +94,5 @@ for s in sessions:
         skipped += 1                   # no account on the link, deleted account or another currency: look at it by hand
     root.update({'stripe/%s/s/%s' % (mode, sid): rec})
 root.update({'stripe/%s/last' % mode: newest})
-print('stripe (%s): paid sessions looked at %d, Plus given %d, donations %d, to check by hand %d'
-      % (mode, len(sessions), plus_n, gifts, skipped))
+print('stripe (%s): paid sessions looked at %d, Plus given %d, themes given %d, donations %d, to check by hand %d'
+      % (mode, len(sessions), plus_n, themes_n, gifts, skipped))
