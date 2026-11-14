@@ -2606,15 +2606,15 @@ function showShop(back){
     +'<div class="stack"><button class="btn primary big" id="shPlus" type="button">Pilotta Plus'+(hasPlus()?' ✓':'')+'</button>'
     +'<p class="hint" style="text-align:center;margin:0">Χωρίς διαφημίσεις και το θέμα «Διάστημα».</p>'
     +'<h3 style="margin:6px 0 0">Θέματα</h3>'
-    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 10px">'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,72px);justify-content:start;gap:12px 14px">'
     +Object.keys(PAID_CATS).map(function(c){
       var P=PAID_CATS[c], fk=Object.keys(FELTS).filter(function(k){ return ITEMCAT.felt[k]===c; })[0], T=fk?FELTS[fk]:null;
       var bg=T?(T[4]?T[4]+',':'')+'radial-gradient(circle,'+T[1]+','+T[2]+')':'#555';
       /* only the icon and the name: the price is on the page of the theme */
-      return '<button data-th="'+c+'" type="button" aria-label="'+P.n+'" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:13px;line-height:1.2">'
-        +'<span style="position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border-radius:16px;border:1px solid rgba(128,128,128,.45);background:'+bg+'">'
+      return '<button data-th="'+c+'" type="button" aria-label="'+P.n+'" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:11px;line-height:1.15">'
+        +'<span style="position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border-radius:14px;border:1px solid rgba(128,128,128,.45);background:'+bg+'">'
         +'<span style="display:block;width:58%;aspect-ratio:1;border-radius:50%;background:rgba(255,246,230,.94);padding:12%;box-sizing:border-box">'+((CATS[c]&&CATS[c].i)||'')+'</span>'
-        +(themeOwned(c)?'<span style="position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:#2f7d4f;color:#fff;font-size:12px;line-height:20px">✓</span>':'')
+        +(themeOwned(c)?'<span style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:#2f7d4f;color:#fff;font-size:10px;line-height:16px">✓</span>':'')
         +'</span><span>'+P.n+'</span></button>';
     }).join('')+'</div>'
     +'<p class="hint" style="text-align:center;margin:0">Περισσότερα θέματα έρχονται σύντομα.</p>'
