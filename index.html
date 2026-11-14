@@ -2682,6 +2682,16 @@ function loggedIn(){ return !!(ACCT.user && ACCT.user.uid); }
 function acctSave(u){ if(ACCT.devUn && (!u || u.uid!==ACCT.devUid)){ try{ ACCT.devUn(); }catch(e){} ACCT.devUn=null; ACCT.devUid=null; } if(u) ACCT.devNew=true; if(ACCT.plusUn && (!u || u.uid!==ACCT.plusUid)){ try{ ACCT.plusUn(); }catch(e){} ACCT.plusUn=null; ACCT.plusUid=null; ACCT.plus=undefined; } if(typeof stReset==='function' && (!u || !ACCT.user || ACCT.user.uid!==u.uid)) stReset(); ACCT.user=u; if(u) setTimeout(function(){ try{ prefsSync(); }catch(e){} },1500); try{ if(u) localStorage.setItem('pil.acct',JSON.stringify(u)); else localStorage.removeItem('pil.acct'); }catch(e){} if(u && u.username){ store.set('pil.name',u.username); if(typeof stLoad==='function') stLoad(); } }
 function trialUsed(){ return parseInt(store.get('pil.trial'),10)||0; }
 var TRIAL_MAX=2;
+/* AdMob (Android app only), OFF until the account, the Ad Units and the Play Console declarations are ready. Needs a build made with ADS=1 (see tools/patch_manifest.py).
+   ADS_UNITS: Google's public TEST units, replace with the real ones from the AdMob account. */
+var ADS_ON=false, ADS_UNITS={rewarded:'ca-app-pub-3940256099942544/5224354917'};
+function adsPlugin(){ try{ return (ADS_ON && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Ads) || null; }catch(e){ return null; } }
+/* European consent (UMP) and the ads SDK; resolves true when ads may be requested */
+async function adsInit(){ var P=adsPlugin(); if(!P) return false; try{ var r=await P.init(); return !!(r && r.ready); }catch(e){ return false; } }
+/* a rewarded ad the player chose to watch; resolves true when he watched it to the end */
+async function adsRewarded(){ var P=adsPlugin(); if(!P) return false; try{ if(!(await adsInit())) return false; var r=await P.rewarded({unit:ADS_UNITS.rewarded}); return !!(r && r.rewarded); }catch(e){ return false; } }
+/* one more game with bots for a guest, earned by watching a rewarded ad */
+function trialBonus(){ store.set('pil.trial',String(Math.max(0,trialUsed()-1))); }
 function acctKey(n){ return String(n).toLowerCase().replace(/ς/g,'σ').normalize('NFD').replace(/[̀-ͯ]/g,''); }
 function acctNameOk(n){ return /^[A-Za-z0-9_Ͱ-Ͽἀ-῿]{3,14}$/.test(n); }
 /* ---------- blocked words in usernames (English, Greek, Greeklish). To add a word: put it in the right list below, in lower case.
