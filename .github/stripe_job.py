@@ -16,6 +16,11 @@ THEME_LINKS = {
     'plink_1Ubn6YBz82ezmpqsfHXhNTsu': ('cafe', 199, False),
     'plink_1UbnAlBz82ezmpqs7q40mtnI': ('cafe', 99, True),     # the Plus price: only for accounts that have Pilotta Plus
 }
+# Payment Links of the Pilotta Plus subscriptions (live mode): monthly 1.99 EUR and yearly 14.99 EUR
+SUB_LINKS = {
+    'plink_1UbnHjBz82ezmpqsWQbluwGZ': ('month', 199),
+    'plink_1UbnKDBz82ezmpqs7A56vUP3': ('year', 1499),
+}
 UID_RE = re.compile(r'^[A-Za-z0-9]{20,64}$')
 
 if not KEY or not SA:
@@ -51,7 +56,8 @@ while True:
     after = page['data'][-1]['id']
 
 done = db.reference('stripe/%s/s' % mode).get(shallow=True) or {}
-newest, plus_n, gifts, skipped, themes_n = int(last or 0), 0, 0, 0, 0
+subs_before = db.reference('stripe/%s/sub' % mode).get() or {}
+newest, plus_n, gifts, skipped, themes_n, subs_n = int(last or 0), 0, 0, 0, 0, 0
 for s in sessions:
     newest = max(newest, int(s.get('created') or 0))
     sid = s.get('id')
@@ -72,6 +78,24 @@ for s in sessions:
             ok_uid = False
     if ok_uid:
         rec['u'] = uid
+    sl = SUB_LINKS.get(s.get('payment_link') or '')
+    if sl:                             # a Plus subscription: Plus now; the check below takes it away again when the subscription ends
+        kind, price = sl
+        sub = s.get('subscription')
+        if isinstance(sub, dict):
+            sub = sub.get('id')
+        rec['sub'] = kind
+        if ok_uid and cur == 'eur' and amount >= price and sub:
+            has_sub = any(isinstance(r, dict) and r.get('u') == uid and not r.get('end') for r in subs_before.values())
+            if root.child('users/%s/plus' % uid).get() and not has_sub and not root.child('users/%s/plusLife' % uid).get():
+                root.update({'users/%s/plusLife' % uid: True})   # had Plus before (one payment or by hand): the subscription must never take it away
+            root.update({'users/%s/plus' % uid: True, 'stripe/%s/sub/%s' % (mode, sub): {'u': uid, 'k': kind, 'ts': int(s.get('created') or 0)}})
+            rec['plus'] = True
+            subs_n += 1
+        else:
+            skipped += 1
+        root.update({'stripe/%s/s/%s' % (mode, sid): rec})
+        continue
     tl = THEME_LINKS.get(s.get('payment_link') or '')
     if tl:                             # a theme: never Plus, never a donation
         theme, price, needs_plus = tl
@@ -85,7 +109,7 @@ for s in sessions:
         root.update({'stripe/%s/s/%s' % (mode, sid): rec})
         continue
     if ok_uid and cur == 'eur' and amount >= PLUS_MIN:
-        root.update({'users/%s/plus' % uid: True})
+        root.update({'users/%s/plus' % uid: True, 'users/%s/plusLife' % uid: True})   # one payment: for ever
         rec['plus'] = True
         plus_n += 1
     elif cur == 'eur' and amount < PLUS_MIN:
@@ -94,5 +118,33 @@ for s in sessions:
         skipped += 1                   # no account on the link, deleted account or another currency: look at it by hand
     root.update({'stripe/%s/s/%s' % (mode, sid): rec})
 root.update({'stripe/%s/last' % mode: newest})
-print('stripe (%s): paid sessions looked at %d, Plus given %d, themes given %d, donations %d, to check by hand %d'
-      % (mode, len(sessions), plus_n, themes_n, gifts, skipped))
+
+# Subscriptions: every hour each known subscription is asked about. An ended one (canceled, unpaid, expired) takes Plus away,
+# unless the account has plusLife (a one-time payment or Plus before the subscription) or another subscription is still active.
+# This needs the Stripe key to be allowed to read Subscriptions; without that nobody loses Plus (nothing is removed on an error).
+subs = db.reference('stripe/%s/sub' % mode).get() or {}
+active_by_uid, ended_now, sub_err = {}, [], 0
+for sid2, rec2 in subs.items():
+    if not isinstance(rec2, dict):
+        continue
+    try:
+        st = stripe_get('subscriptions/' + sid2, {}).get('status')
+    except Exception:
+        sub_err += 1
+        continue
+    if st in ('active', 'trialing', 'past_due'):      # past_due: Stripe is still retrying the payment
+        active_by_uid[rec2.get('u')] = True
+        if rec2.get('end'):
+            root.update({'stripe/%s/sub/%s/end' % (mode, sid2): None})
+    elif st in ('canceled', 'unpaid', 'incomplete_expired') and not rec2.get('end'):
+        ended_now.append((sid2, rec2.get('u')))
+plus_off = 0
+if not sub_err:
+    for sid2, u in ended_now:
+        root.update({'stripe/%s/sub/%s/end' % (mode, sid2): int(time.time())})
+        if u and not active_by_uid.get(u) and not db.reference('users/%s/plusLife' % u).get():
+            root.update({'users/%s/plus' % u: False})
+            plus_off += 1
+print('subscriptions: known %d, ended now %d, Plus removed %d, errors %d' % (len(subs), len(ended_now), plus_off, sub_err))
+print('stripe (%s): paid sessions looked at %d, Plus given %d, subscriptions started %d, themes given %d, donations %d, to check by hand %d'
+      % (mode, len(sessions), plus_n, subs_n, themes_n, gifts, skipped))
