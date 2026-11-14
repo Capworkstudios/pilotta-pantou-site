@@ -11,7 +11,9 @@ SA = os.environ.get('FIREBASE_SA', '').strip()
 DB_URL = 'https://pilotta-anywhere-default-rtdb.europe-west1.firebasedatabase.app'
 PLUS_MIN = 299            # euro cents
 LOOKBACK = 3 * 86400      # first run, and overlap on every run: sessions of the last 3 days are looked at again
-# Payment Links of the themes (live mode): payment link id -> (theme, price in euro cents, needs Plus)
+THEMES = ('cafe', 'neon', 'med', 'gold')
+# Payment Links of the themes (live mode): payment link id -> (default theme, price in euro cents, needs Plus).
+# One link per price serves every theme: the app sends client_reference_id = <uid>__<theme>; a link without the suffix gives the default theme
 THEME_LINKS = {
     'plink_1Ubn6YBz82ezmpqsfHXhNTsu': ('cafe', 199, False),
     'plink_1UbnAlBz82ezmpqs7q40mtnI': ('cafe', 99, True),     # the Plus price: only for accounts that have Pilotta Plus
@@ -66,6 +68,9 @@ for s in sessions:
     if s.get('payment_status') != 'paid':
         continue                       # e.g. a bank payment still on its way: looked at again next hour
     uid = s.get('client_reference_id') or ''
+    theme_ref = ''
+    if '__' in uid:
+        uid, theme_ref = uid.split('__', 1)
     cc = s.get('currency_conversion')  # Adaptive Pricing: the buyer paid in his currency, the price is in euro
     amount = int((cc or s).get('amount_total') or 0)
     cur = ((cc or {}).get('source_currency') or s.get('currency') or '').lower()
@@ -99,6 +104,11 @@ for s in sessions:
     tl = THEME_LINKS.get(s.get('payment_link') or '')
     if tl:                             # a theme: never Plus, never a donation
         theme, price, needs_plus = tl
+        if theme_ref:
+            if theme_ref in THEMES:
+                theme = theme_ref
+            else:
+                ok_uid = False         # an unknown theme in the link: look at it by hand
         rec['th'] = theme
         if ok_uid and cur == 'eur' and amount >= price and (not needs_plus or root.child('users/%s/plus' % uid).get()):
             root.update({'users/%s/themes/%s' % (uid, theme): True})

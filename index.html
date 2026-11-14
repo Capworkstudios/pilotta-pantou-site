@@ -2654,9 +2654,9 @@ var PLUS_CATS={space:1};
 /* themes sold one by one in the Store (1,99 €; 0,99 € for Pilotta Plus). Owned themes are given by the server (users/UID/themes/<cat>, the app cannot write it).
    There is no purchase in the app yet, so for now nobody owns them. */
 var PAID_CATS={cafe:{pre:'kf_',n:'Κυπριακό καφενείο',price:'1,99 €',plus:'0,99 €',pid:'theme_cafe',pidPlus:'theme_cafe_plus',link:'https://buy.stripe.com/dRm28q78X0ZJbYd8gV0Ny03',linkPlus:'https://buy.stripe.com/3cI9AS8d1gYH8M1gNr0Ny04',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα το κυπριακό καφενείο.'},
-  neon:{pre:'ne_',n:'Νέον',price:'1,99 €',plus:'0,99 €',pid:'theme_neon',pidPlus:'theme_neon_plus',link:'',linkPlus:'',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα το νέον και τη νυχτερινή πόλη.'},
-  med:{pre:'me_',n:'Μεσόγειος',price:'1,99 €',plus:'0,99 €',pid:'theme_med',pidPlus:'theme_med_plus',link:'',linkPlus:'',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα τη Μεσόγειο: θάλασσα, ήλιος και λευκά νησιά.'},
-  gold:{pre:'go_',n:'Χρυσό',price:'1,99 €',plus:'0,99 €',pid:'theme_gold',pidPlus:'theme_gold_plus',link:'',linkPlus:'',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα το μαύρο και το χρυσό.'}};
+  neon:{pre:'ne_',n:'Νέον',price:'1,99 €',plus:'0,99 €',pid:'theme_neon',pidPlus:'theme_neon_plus',link:'https://buy.stripe.com/dRm28q78X0ZJbYd8gV0Ny03',linkPlus:'https://buy.stripe.com/3cI9AS8d1gYH8M1gNr0Ny04',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα το νέον και τη νυχτερινή πόλη.'},
+  med:{pre:'me_',n:'Μεσόγειος',price:'1,99 €',plus:'0,99 €',pid:'theme_med',pidPlus:'theme_med_plus',link:'https://buy.stripe.com/dRm28q78X0ZJbYd8gV0Ny03',linkPlus:'https://buy.stripe.com/3cI9AS8d1gYH8M1gNr0Ny04',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα τη Μεσόγειο: θάλασσα, ήλιος και λευκά νησιά.'},
+  gold:{pre:'go_',n:'Χρυσό',price:'1,99 €',plus:'0,99 €',pid:'theme_gold',pidPlus:'theme_gold_plus',link:'https://buy.stripe.com/dRm28q78X0ZJbYd8gV0Ny03',linkPlus:'https://buy.stripe.com/3cI9AS8d1gYH8M1gNr0Ny04',d:'5 επιφάνειες τραπεζιού, 5 φόντα, 5 σχέδια φύλλων, 5 avatars και 5 emotes με θέμα το μαύρο και το χρυσό.'}};
 function themeOwned(c){
   if(typeof ACCT==='undefined') return false;
   if(ACCT.themes && ACCT.themes[c]) return true;
@@ -2764,7 +2764,7 @@ function showTheme(c,back){
       tb.textContent='Αγορά · '+(has?P.plus:P.price);
       tb.addEventListener('click',function(){
         var u=has?P.linkPlus:P.link;
-        extOpen(u+'?client_reference_id='+encodeURIComponent(ACCT.user.uid)+(ACCT.user.email?'&prefilled_email='+encodeURIComponent(ACCT.user.email):''));
+        extOpen(u+'?client_reference_id='+encodeURIComponent(ACCT.user.uid+'__'+c)+(ACCT.user.email?'&prefilled_email='+encodeURIComponent(ACCT.user.email):''));
         msg('Η πληρωμή γίνεται στη σελίδα της Stripe. Το θέμα ξεκλειδώνει αυτόματα στον λογαριασμό σου, το πολύ μέσα σε μία ώρα.');
       });
     }
