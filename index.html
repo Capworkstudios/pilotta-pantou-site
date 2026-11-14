@@ -4678,7 +4678,11 @@ async function main(){
       else if(gm==='near') acctGate('nearby',function(){ showNearby(home,onNew); },home);
       else if(gm==='invite'){ var ic=store.get('pil.invCode'); store.del('pil.invCode'); acctGate('online',function(){ var T=mpTransport(), fail=function(m){ toast(m,3000); home(); }; if(!T||!ic){ home(); return; } mpJoin(T,ic,mpName(),onNew,home,fail).catch(function(){ fail('Δεν μπόρεσα να συνδεθώ. Έλεγξε το internet.'); }); },home); }
       else if(gm==='new') showMode(home,onNew);
-      else if(WELCOME_ON && !AUTO && !resumed && !store.get('pil.seen')) showWelcome(home); else if(!store.get('pil.seen')) store.set('pil.seen','1');
+      else {
+        /* first popup for someone who is not signed in: continue as a guest or sign in (then the welcome tour, the first time) */
+        var afterGuest=function(){ if(WELCOME_ON && !AUTO && !resumed && !store.get('pil.seen')) showWelcome(home); else { if(!store.get('pil.seen')) store.set('pil.seen','1'); home(); } };
+        if(AUTO) afterGuest(); else guestNote(home,afterGuest);
+      }
     });
     closeSheet();
   }
