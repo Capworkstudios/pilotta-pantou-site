@@ -5092,5 +5092,6 @@ run();
 })();
 </script>
 
+<script>(function(){var en=!/^el/i.test(navigator.language||'el');function add(){var s=document.getElementById('hSet');if(!s||document.getElementById('siteGuide'))return;var st=s.parentNode&&s.parentNode.parentNode;if(!st||!st.parentNode)return;var a=document.createElement('a');a.id='siteGuide';a.href='guide.html'+(en?'#en':'');a.textContent=en?'How to play Pilotta':'Πώς παίζεται η πιλόττα';a.style.cssText='display:block;text-align:center;margin:10px 0 0;font:13px/1.4 system-ui,sans-serif;color:inherit;opacity:.65;text-decoration:underline';st.parentNode.insertBefore(a,st.nextSibling);}new MutationObserver(add).observe(document.body,{childList:true,subtree:true});add();})();</script>
 <script>if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }</script>
 </body></html>
