@@ -25,6 +25,12 @@ jobs:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
           STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
         run: python3 .github/stripe_job.py
+      - name: Themes bought with Google Play Billing
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          PLAY_SA: ${{ secrets.PLAY_SA }}
+        run: python3 .github/play_job.py
       - name: Limits, categories, inactivity
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
