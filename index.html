@@ -2487,10 +2487,10 @@ function onlineStart(){
     var db=fb.database(), ref=db.ref('live/n'), inc=fb.database.ServerValue.increment;
     ONLINE.ref=ref; ONLINE.inc=inc;
     ONLINE.conn=function(s){ if(s.val()===true && ONLINE.on && !AWAY.on) ref.set(inc(1)).then(function(){ return ref.onDisconnect().set(inc(-1)); }).catch(function(){}); };
-    /* one anonymous entry per open app (live/c/RANDOM), removed on disconnect: every hour the server job counts them and corrects live/n,
+    /* one entry per open app (live/cu/PLAYER/RANDOM), removed on disconnect: every hour the server job counts the players and corrects live/n,
        so the counter cannot drift when a -1 on disconnect gets lost */
     if(!ONLINE.cid) ONLINE.cid='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-    var cref=db.ref('live/c/'+ONLINE.cid); ONLINE.cref=cref;
+    var cref=db.ref('live/cu/'+ACCT.user.uid+'/'+ONLINE.cid); ONLINE.cref=cref;   /* per player: the hourly job counts each player once, even with several devices open */
     ONLINE.cconn=function(s){ if(s.val()===true && ONLINE.on && !AWAY.on) cref.set(true).then(function(){ return cref.onDisconnect().remove(); }).catch(function(){}); };
     db.ref('.info/connected').on('value',ONLINE.cconn);   /* +1 first: the rules check the -1 of onDisconnect against the value at the time it is registered */
     ONLINE.val=function(s){ ONLINE.n=Math.max(AWAY.on?0:1,Number(s.val())||0); honRefresh(); };
