@@ -3102,7 +3102,9 @@ function acctT(){ return mpTransport(); }
 /* appearance settings follow the account: after a reinstall they come back by themselves. Only values that differ from the default are saved to users/UID/prefs; on a phone where a setting is still the default, the cloud value is applied (and the app reloads once). Nothing is saved before the first check has finished, so a fresh install never overwrites the cloud with defaults. */
 var PREFD={'pil.felt':'green','pil.pbg':'plain','pil.back':'classic','pil.snd':'1','pil.anim':'1','pil.coach':'0','pil.emoOff':'0','pil.emo':null}, PREFT=null, PREFOK=false, PREFC=null;
 function prefsIsDef(k,v){ return v===null || v===undefined || v===PREFD[k]; }
-function prefsLocal(){ var o={}; Object.keys(PREFD).forEach(function(k){ var v=store.get(k); if(!prefsIsDef(k,v)) o[k.slice(4)]=String(v).slice(0,200); }); return o; }
+function prefsLocal(){ var o={}; Object.keys(PREFD).forEach(function(k){ var v=store.get(k); if(v===null || v===undefined) v=PREFD[k]; if(v!==null && v!==undefined) o[k.slice(4)]=String(v).slice(0,200); }); var t=prefsT(); if(t) o.t=String(t); return o; }
+/* every change of an appearance setting is stamped, so the newer device wins (also when something is set back to the default) */
+function prefsT(){ return parseInt(store.get('pil.prefT')||'0',10)||0; }
 function prefsPush(){
   if(!PREFOK) return;
   clearTimeout(PREFT);
@@ -3112,13 +3114,22 @@ async function prefsSync(){
   try{
     if(!(typeof loggedIn==='function' && loggedIn())) return;
     var T=acctT(); await T.init(); var path='users/'+ACCT.user.uid+'/prefs', cloud=await T.get(path), got=false;
-    if(cloud && typeof cloud==='object') Object.keys(cloud).forEach(function(k){ var kk='pil.'+k; if(kk in PREFD && typeof cloud[k]==='string' && prefsIsDef(kk,store.get(kk)) && store.get(kk)!==cloud[k]){ store.set(kk,cloud[k].slice(0,200)); got=true; } });
+    var cl=(cloud && typeof cloud==='object') ? cloud : {}, ct=parseInt(cl.t||'0',10)||0, lt=prefsT();
+    if(ct>lt){
+      Object.keys(PREFD).forEach(function(kk){ var k=kk.slice(4), v=cl[k], cur=store.get(kk);
+        if(typeof v==='string'){ if(cur!==v && !(cur===null && v===PREFD[kk])){ store.set(kk,v.slice(0,200)); got=true; } }
+        else if(!prefsIsDef(kk,cur)){ store.del(kk); got=true; } });
+      try{ Storage.prototype.setItem.call(localStorage,'pil.prefT',String(ct)); }catch(e){}
+    } else if(!ct && cloud && typeof cloud==='object'){
+      Object.keys(cl).forEach(function(k){ var kk='pil.'+k; if(kk in PREFD && typeof cl[k]==='string' && prefsIsDef(kk,store.get(kk)) && store.get(kk)!==cl[k]){ store.set(kk,cl[k].slice(0,200)); got=true; } });
+    }
     if(got){ var fl=false; try{ fl=sessionStorage.getItem('pil.pfx'); sessionStorage.setItem('pil.pfx','1'); }catch(e){} if(!fl){ location.reload(); return; } }
-    PREFOK=true; PREFC=(cloud && typeof cloud==='object') ? cloud : {};
-    var now=prefsLocal(); if(JSON.stringify(cloud||{})!==JSON.stringify(now)) prefsPush();
+    PREFOK=true; PREFC=cl;
+    if(!ct && !lt){ var dn=Object.keys(PREFD).some(function(kk){ return !prefsIsDef(kk,store.get(kk)); }); if(dn){ try{ Storage.prototype.setItem.call(localStorage,'pil.prefT',String(Date.now())); }catch(e){} } }
+    var now=prefsLocal(); if(JSON.stringify(cl)!==JSON.stringify(now) && prefsT()>=ct) prefsPush();
   }catch(e){}
 }
-try{ var _lsSet=Storage.prototype.setItem; Storage.prototype.setItem=function(k){ var r=_lsSet.apply(this,arguments); try{ if(this===window.localStorage && (k in PREFD)) prefsPush(); }catch(e){} return r; }; }catch(e){}
+try{ var _lsSet=Storage.prototype.setItem; Storage.prototype.setItem=function(k){ var r=_lsSet.apply(this,arguments); try{ if(this===window.localStorage && (k in PREFD)){ _lsSet.call(this,'pil.prefT',String(Date.now())); prefsPush(); } }catch(e){} return r; }; }catch(e){}
 
 /* Google sign-in inside the Android app: the native SocialLogin plugin (@capgo/capacitor-social-login v6) gives an idToken,
    Firebase signs in with it. On the web the popup flow below is used as before. */
