@@ -2058,7 +2058,7 @@ async function playTricks(){
     for(var i=0;i<4;i++){
       var p=(leader+i)%4; G.active=p;
       if(t===0){
-        if(p===G.me){ G.humanAnn = AUTO ? autoAnn() : 0; G.annVal = 20; }
+        if(p===G.me){ G.humanAnn = AUTO ? autoAnn() : 0; G.annVal = 20; try{ if(G.decl[p].melds.length) G.annVal=bestMeld(G.decl[p].melds).pts; }catch(e){} }
         else if(!(MP.on && MP.ctl[p]==='remote') && G.decl[p].total>0){ announceFor(p); await sleep(800); }
       }
       render();
@@ -4299,7 +4299,7 @@ async function mpClientRun(code,seat,uid){
       if(t.kind==='bid'){ r=await humanBid(t.high||null,!!t.canK); if(r && MP.curId===t.id) send({type:r.type,val:r.val||0,s:r.s||''}); }
       else if(t.kind==='play'){
         var L=(t.legal||[]).map(mpCard); G.legalIds=new Set(t.legal||[]); renderHand();
-        if(S.tn===0){ G.humanAnn=0; G.annVal=20; try{ var dm=declEval(G.hands[seat]); if(AUTO){ if(dm.melds.length) G.annVal=bestMeld(dm.melds).pts; G.humanAnn=dm.total>0?G.annVal:0; } }catch(e){} }
+        if(S.tn===0){ G.humanAnn=0; G.annVal=20; try{ var dm=declEval(G.hands[seat]); if(dm.melds.length) G.annVal=bestMeld(dm.melds).pts; if(AUTO){ G.humanAnn=dm.total>0?G.annVal:0; } }catch(e){} }
         MP.cs=null;
         if(t.sh && S.tn===1){ try{ var dm2=declEval(G.hands[seat]); if(G.humanAnn>0){ var cp2=declCap(dm2,G.humanAnn); if(cp2) dm2=cp2; } MP.cs={on:true,shown:false,dl:{melds:dm2.melds,total:dm2.total}}; csApply(); }catch(e){ MP.cs=null; } }
         r=await humanPlay(L); var shn=(MP.cs && MP.cs.shown) ? 1 : 0; MP.cs=null; csApply();
