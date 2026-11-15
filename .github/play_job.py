@@ -63,8 +63,8 @@ for uid, items in buy.items():
     for k, it in (items or {}).items():
         if isinstance(it, dict) and it.get('p') == SUB_PID:
             continue               # the subscription: handled below
-        if not isinstance(it, dict) or 'r' in it:
-            continue
+        if not isinstance(it, dict) or ('r' in it and it['r'] != 2):
+            continue               # r=2 (to check by hand) is looked at again: the Plus may have been given since
         pid, token = it.get('p'), it.get('t')
         if pid not in PRODUCTS or not token:
             root.update({'buy/%s/%s/r' % (uid, k): 0}); rejected += 1; continue
@@ -80,7 +80,8 @@ for uid, items in buy.items():
         if (r.get('obfuscatedExternalAccountId') or '') != uid:
             root.update({'buy/%s/%s/r' % (uid, k): 2}); hand += 1; continue
         if needs_plus and not db.reference('users/%s/plus' % uid).get():
-            root.update({'buy/%s/%s/r' % (uid, k): 2}); hand += 1; continue
+            if it.get('r') != 2: root.update({'buy/%s/%s/r' % (uid, k): 2})
+            hand += 1; continue
         root.update({'users/%s/themes/%s' % (uid, theme): True, 'buy/%s/%s/r' % (uid, k): 1})
         given += 1
 print('play: themes given %d, rejected %d, to check by hand %d' % (given, rejected, hand))
