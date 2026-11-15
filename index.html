@@ -117,10 +117,13 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .vt .vn{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1.3;padding:1px 4px;background:rgba(0,0,0,.55);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vt:not(.on):not(.me){display:flex;align-items:center;justify-content:center;height:30px;width:auto;padding:0 8px}
 .vt:not(.on):not(.me) .vn{position:static;background:none;color:var(--felt-ink);font-size:12px}
-.table{position:relative;background:var(--tex,none),radial-gradient(ellipse at 50% 45%,var(--felt) 0%,var(--felt2) 100%);color:var(--felt-ink);border-radius:20px;padding:10px 10px 54px;
+.table{position:relative;background:none;border-radius:20px;padding:10px 10px 54px;
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr) minmax(0,1fr);grid-template-rows:auto auto;gap:6px 8px}
-.seat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border-radius:12px;min-width:0;text-align:center}
-.seat.active{outline:2px solid var(--accent);outline-offset:1px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;border-radius:12px;min-width:0;text-align:center;justify-self:center;align-self:center}
+.seat.n,.seat.w,.seat.e{max-width:100%;box-sizing:border-box;justify-content:center}
+.seat.n{width:148px;height:88px}
+.seat.w,.seat.e{width:84px;height:148px}
+.seat.active{outline:2px solid var(--accent);outline-offset:0}
 .seat .nm{font-weight:700;font-size:13px}
 .sk{margin-inline-start:5px;color:var(--bad);font-weight:800;font-size:11px}.seat .tg{font-size:11px;opacity:.85;min-height:14px}
 .seat.n{grid-column:1/-1;grid-row:1}
@@ -179,7 +182,8 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .backs.v .back{margin:-20px 0 0;transform:rotate(90deg)}
 .backs.v .back:first-child{margin-top:0}
 .center{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto);align-items:center;justify-items:center;gap:2px;min-height:170px;
-  --cw:min(44px,11.5vw);aspect-ratio:1;min-height:0;width:100%;align-content:center;padding:4px;border-radius:16px;background:rgba(0,0,0,.16);border:1.5px solid rgba(233,243,236,.22);box-shadow:inset 0 0 18px rgba(0,0,0,.28)}
+  --cw:min(44px,11.5vw);aspect-ratio:1;min-height:190px;width:100%;box-sizing:border-box;align-content:center;padding:14px 12px;border-radius:16px;color:var(--felt-ink);border:9px solid #6b4423;background:var(--tex,none),radial-gradient(ellipse at 50% 45%,var(--felt) 0%,var(--felt2) 100%);box-shadow:0 0 0 2px #3b2210,inset 0 0 0 2px #9a6a3a,inset 0 0 22px rgba(0,0,0,.5),0 14px 22px rgba(0,0,0,.5),0 3px 5px rgba(0,0,0,.4)}
+.center .bpill{font-size:12px;padding:2px 8px}
 .slot-t{grid-area:1/2}.slot-l{grid-area:2/1}.slot-r{grid-area:2/3}.slot-b{grid-area:3/2}
 .slot-t,.slot-l,.slot-r,.slot-b{min-height:calc(var(--cw)*1.4)}
 .card{width:var(--cw);aspect-ratio:5/7;border-radius:7px;background:var(--paper);border:1px solid var(--cardline);font-size:calc(var(--cw)*.34);font-weight:700;
@@ -2617,7 +2621,7 @@ function homeHTML(inGame,canResume){
    +'<div class="hon" id="hOn"'+(ONLINE.n?'':' hidden')+'>'+honHTML()+'</div>'
    +'<button class="hav" id="hAv" type="button">'+havHTML()+'</button>'
    +'<button class="hshop" id="hShop" type="button"><span class="shi"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H6"/></svg></span>Κατάστημα</button>'
-   +'<button class="hplus" id="hPlus" type="button">'+badgeSvg({b:'plus'})+'<span class="hpt"><span>Pilotta Plus</span><small>Χωρίς διαφημίσεις + Bonus θέμα</small></span></button>';
+   +'<button class="hplus" id="hPlus" type="button">'+badgeSvg({b:'plus'})+'<span class="hpt"><span>Pilotta Plus</span></span></button>';
 }
 /* main menu: new game, tutorial, rules, settings (and a resume button when a game is saved or running) */
 function showHome(inGame,canResume,onResume,onNew){
@@ -5169,5 +5173,6 @@ run();
 </script>
 
 <script>(function(){var en=!/^el/i.test(navigator.language||'el');function add(){var s=document.getElementById('hSet');if(!s||document.getElementById('siteGuide'))return;var st=s.parentNode&&s.parentNode.parentNode;if(!st||!st.parentNode)return;var a=document.createElement('a');a.id='siteGuide';a.href='guide.html'+(en?'#en':'');a.textContent=en?'How to play Pilotta':'Πώς παίζεται η πιλόττα';a.style.cssText='display:block;text-align:center;margin:10px 0 0;font:13px/1.4 system-ui,sans-serif;color:inherit;opacity:.65;text-decoration:underline';st.parentNode.insertBefore(a,st.nextSibling);}new MutationObserver(add).observe(document.body,{childList:true,subtree:true});add();})();</script>
+<script>(function(){if(document.getElementById('sitePlay'))return;var en=!/^el/i.test(navigator.language||'el');try{if(sessionStorage.getItem('pil.playX'))return;}catch(e){}var d=document.createElement('div');d.id='sitePlay';d.style.cssText='position:fixed;left:6px;bottom:6px;z-index:80;display:none;font-family:system-ui,sans-serif';d.innerHTML='<a href=\'#\' style=\'display:block\'><img alt=\''+(en?'Get it on Google Play':'Διαθέσιμο στο Google Play')+'\' src=\'play-badge-'+(en?'en':'el')+'.svg\' style=\'display:block;height:38px;width:auto\'></a>'+'<button type=\'button\' aria-label=\'×\' style=\'position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:#333;border:1px solid #a6a6a6;color:#fff;font-size:12px;line-height:1;padding:0;cursor:pointer\'>×</button>';d.querySelector('a').onclick=function(e){e.preventDefault();var m=document.createElement('div');m.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif';m.innerHTML='<div style=\'background:#fff;color:#14221b;border-radius:16px;padding:22px;max-width:340px;width:100%;text-align:center\'><h3 style=\'margin:0 0 8px;font-size:20px\'>'+(en?'Coming soon':'Έρχεται σύντομα')+'</h3><p style=\'margin:0 0 16px;font-size:15px;line-height:1.4\'>'+(en?'The app will be available on Google Play very soon.':'Η εφαρμογή θα είναι σύντομα διαθέσιμη στο Google Play.')+'</p><button type=\'button\' style=\'background:#e5a823;border:0;border-radius:10px;padding:10px 24px;font-size:16px;font-weight:700;cursor:pointer\'>'+(en?'OK':'Εντάξει')+'</button></div>';m.onclick=function(ev){if(ev.target===m||ev.target.tagName==='BUTTON')m.remove();};document.body.appendChild(m);};d.querySelector('button').onclick=function(){try{sessionStorage.setItem('pil.playX','1');}catch(e){} d.remove();};document.body.appendChild(d);function sync(){var on=!!document.getElementById('hNew');d.style.display=on?'block':'none';var pl=document.getElementById('hPlus');if(on&&pl){var r=pl.getBoundingClientRect();if(r.height>0){d.style.bottom=Math.max(0,Math.round(innerHeight-r.bottom))+'px';d.querySelector('img').style.height=Math.round(r.height)+'px';}}}window.addEventListener('resize',sync);new MutationObserver(sync).observe(document.body,{childList:true,subtree:true});sync();})();</script>
 <script>if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }</script>
 </body></html>
