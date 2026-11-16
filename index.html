@@ -228,11 +228,13 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .card{width:var(--cw);aspect-ratio:5/7;border-radius:7px;background:var(--paper);border:1px solid var(--cardline);font-size:calc(var(--cw)*.34);font-weight:700;
   display:flex;flex-direction:column;align-items:center;padding:0;line-height:1;color:var(--blk);font-family:var(--f-body)}
 .card.red{color:var(--red)}
+/* the glyphs of the four suits differ in size: even them out */
+.card.s-H .st{font-size:1.4em}.card.s-D .st{font-size:1.95em}.card.s-S .st{font-size:1.9em}.card.s-C .st{font-size:1.8em}
 .card .rk{align-self:flex-start;padding:.14em .18em 0;position:relative;z-index:2}
 .card{position:relative;overflow:hidden}
 .card.flyc,.card.cutc{position:fixed}
 .card .fc{position:absolute;left:28%;top:7%;width:46%;height:86%;pointer-events:none}
-.card .st{font-size:1.75em;margin:auto;line-height:1}
+.card .st{font-size:1.75em;margin:0;line-height:1;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 /* «New cards» (Appearance): larger hand fanned out, pips, corner suit, figures, centred big suit. Without .cl-new the cards look as before. */
 .cl-new .card .st{margin:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .card.win{outline:3px solid var(--accent)}
@@ -1687,7 +1689,7 @@ function faceSvg(c){
 }
 function cardEl(c,extra,tag){
   var t = tag || 'div';
-  return '<'+t+' class="card'+(isRed(c.s)?' red':'')+(extra?' '+extra:'')+'" data-id="'+cid(c)+'"'+(t==='button'?' type="button" aria-label="'+c.r+' '+SNAME[c.s]+'"':'')+'>'+(!CNEW ? '<span class="rk">'+c.r+'</span><span class="st">'+SYM[c.s]+'</span>' : '<span class="rk'+(c.r==='10'?' r10':'')+'">'+c.r+'<span class="rs" aria-hidden="true">'+SYM[c.s]+'</span></span>'+(c.r==='J'||c.r==='Q'||c.r==='K' ? faceSvg(c) : '<span class="st">'+SYM[c.s]+'</span>'+pipsEl(c)))+'</'+t+'>';
+  return '<'+t+' class="card s-'+c.s+(isRed(c.s)?' red':'')+(extra?' '+extra:'')+'" data-id="'+cid(c)+'"'+(t==='button'?' type="button" aria-label="'+c.r+' '+SNAME[c.s]+'"':'')+'>'+(!CNEW ? '<span class="rk">'+c.r+'</span><span class="st">'+SYM[c.s]+'</span>' : '<span class="rk'+(c.r==='10'?' r10':'')+'">'+c.r+'<span class="rs" aria-hidden="true">'+SYM[c.s]+'</span></span>'+(c.r==='J'||c.r==='Q'||c.r==='K' ? faceSvg(c) : '<span class="st">'+SYM[c.s]+'</span>'+pipsEl(c)))+'</'+t+'>';
 }
 /* pips of the 7-10 (classic layout): shown only on the larger cards of the hand, the cards on the table keep the single big suit */
 var PIPS={'7':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35]],'8':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35],[1,.65]],'9':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.5]],'10':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.285],[1,.715]]};
