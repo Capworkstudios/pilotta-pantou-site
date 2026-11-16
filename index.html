@@ -228,8 +228,7 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .card{width:var(--cw);aspect-ratio:5/7;border-radius:7px;background:var(--paper);border:1px solid var(--cardline);font-size:calc(var(--cw)*.34);font-weight:700;
   display:flex;flex-direction:column;align-items:center;padding:0;line-height:1;color:var(--blk);font-family:var(--f-body)}
 .card.red{color:var(--red)}
-/* the glyphs of the four suits differ in size: even them out */
-.card.s-H .st{font-size:1.4em}.card.s-D .st{font-size:1.95em}.card.s-S .st{font-size:1.9em}.card.s-C .st{font-size:1.8em}
+.sv{display:block;width:1em;height:1em;fill:currentColor}
 .card .rk{align-self:flex-start;padding:.14em .18em 0;position:relative;z-index:2}
 .card{position:relative;overflow:hidden}
 .card.flyc,.card.cutc{position:fixed}
@@ -1687,15 +1686,21 @@ function faceSvg(c){
   var g='<g>'+body+top+'</g>';
   return '<svg class="fc" viewBox="0 0 60 120" preserveAspectRatio="none" aria-hidden="true"><rect x=".6" y=".6" width="58.8" height="118.8" fill="#fff" stroke="#3b5aa8"/>'+g+'<g transform="rotate(180 30 60)">'+g+'</g><line x1="2" y1="60" x2="58" y2="60" stroke="#3b5aa8" stroke-width=".3"/><text x="49" y="110" font-size="17" text-anchor="middle" fill="currentColor" transform="rotate(180 49 104)">'+sy+'</text></svg>';
 }
+/* suit symbols drawn as shapes, so they look the same on every device (font glyphs differ in size between systems) */
+var SUITP={H:'<path d="M50 92C20 68 5 50 5 33 5 18 16 8 29 8c10 0 17 6 21 13 4-7 11-13 21-13 13 0 24 10 24 25 0 17-15 35-45 59z"/>',
+ D:'<path d="M50 2 92 50 50 98 8 50z"/>',
+ S:'<path d="M50 3C50 3 8 36 8 59c0 12 9 21 22 21 7 0 13-3 17-8-1 10-5 17-14 22h34c-9-5-13-12-14-22 4 5 10 8 17 8 13 0 22-9 22-21C92 36 50 3 50 3z"/>',
+ C:'<circle cx="50" cy="27" r="22"/><circle cx="26" cy="63" r="22"/><circle cx="74" cy="63" r="22"/><path d="M50 55c0 20-4 32-15 42h30C54 87 50 75 50 55z"/>'};
+function suitSvg(s){ return '<svg class="sv" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'+SUITP[s]+'</svg>'; }
 function cardEl(c,extra,tag){
   var t = tag || 'div';
-  return '<'+t+' class="card s-'+c.s+(isRed(c.s)?' red':'')+(extra?' '+extra:'')+'" data-id="'+cid(c)+'"'+(t==='button'?' type="button" aria-label="'+c.r+' '+SNAME[c.s]+'"':'')+'>'+(!CNEW ? '<span class="rk">'+c.r+'</span><span class="st">'+SYM[c.s]+'</span>' : '<span class="rk'+(c.r==='10'?' r10':'')+'">'+c.r+'<span class="rs" aria-hidden="true">'+SYM[c.s]+'</span></span>'+(c.r==='J'||c.r==='Q'||c.r==='K' ? faceSvg(c) : '<span class="st">'+SYM[c.s]+'</span>'+pipsEl(c)))+'</'+t+'>';
+  return '<'+t+' class="card s-'+c.s+(isRed(c.s)?' red':'')+(extra?' '+extra:'')+'" data-id="'+cid(c)+'"'+(t==='button'?' type="button" aria-label="'+c.r+' '+SNAME[c.s]+'"':'')+'>'+(!CNEW ? '<span class="rk">'+c.r+'</span><span class="st">'+suitSvg(c.s)+'</span>' : '<span class="rk'+(c.r==='10'?' r10':'')+'">'+c.r+'<span class="rs" aria-hidden="true">'+suitSvg(c.s)+'</span></span>'+(c.r==='J'||c.r==='Q'||c.r==='K' ? faceSvg(c) : '<span class="st">'+suitSvg(c.s)+'</span>'+pipsEl(c)))+'</'+t+'>';
 }
 /* pips of the 7-10 (classic layout): shown only on the larger cards of the hand, the cards on the table keep the single big suit */
 var PIPS={'7':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35]],'8':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35],[1,.65]],'9':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.5]],'10':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.285],[1,.715]]};
 function pipsEl(c){
   var a=PIPS[c.r]; if(!a) return '';
-  return '<span class="pips" aria-hidden="true">'+a.map(function(q){ return '<i'+(q[1]>.5?' class="fl"':'')+' style="left:'+[38,53,68][q[0]]+'%;top:'+(q[1]*100)+'%">'+SYM[c.s]+'</i>'; }).join('')+'</span>';
+  return '<span class="pips" aria-hidden="true">'+a.map(function(q){ return '<i'+(q[1]>.5?' class="fl"':'')+' style="left:'+[38,53,68][q[0]]+'%;top:'+(q[1]*100)+'%">'+suitSvg(c.s)+'</i>'; }).join('')+'</span>';
 }
 function renderScore(){
   var u=US(), o=1-u;
