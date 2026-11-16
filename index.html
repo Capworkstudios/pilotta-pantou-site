@@ -232,7 +232,7 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .card .rk{align-self:flex-start;padding:.14em .18em 0;position:relative;z-index:2}
 .card{position:relative;overflow:hidden}
 .card.flyc,.card.cutc{position:fixed}
-.card .fc{position:absolute;left:28%;top:7%;width:46%;height:86%;pointer-events:none}
+.card .fc{position:absolute;left:28%;top:7%;width:46%;height:86%;pointer-events:none;box-sizing:border-box;background:#fff;border:1px solid #3b5aa8}
 .card .st{font-size:1.17em;margin:0;line-height:1;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 /* «New cards» (Appearance): larger hand fanned out, pips, corner suit, figures, centred big suit. Without .cl-new the cards look as before. */
 .cl-new .card .st{margin:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
@@ -245,15 +245,15 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .hand button.card{font-family:var(--f-body)}
 .hand .card.ok{cursor:pointer;box-shadow:0 0 0 2px var(--accent);transform:translateY(-6px);transition:transform .12s}
 .card .rs{display:none}
-.cl-new .hand .card .rk{font-size:.86em}
-.cl-new .hand .card .rk.r10{font-size:.66em;letter-spacing:-.08em;padding-top:.3em}
-.cl-new .hand .card .rk{display:flex;flex-direction:column;align-items:center;line-height:1}
-.cl-new .hand .card .rs{display:block;margin-top:.1em;font-size:calc(var(--cw)*.14);line-height:1}
+.cl-new :is(.hand,.center) .card .rk{font-size:.86em}
+.cl-new :is(.hand,.center) .card .rk.r10{font-size:.66em;letter-spacing:-.08em;padding-top:.3em}
+.cl-new :is(.hand,.center) .card .rk{display:flex;flex-direction:column;align-items:center;line-height:1}
+.cl-new :is(.hand,.center) .card .rs{display:block;margin-top:.1em;font-size:calc(var(--cw)*.14);line-height:1}
 .card .pips{display:none}
-.cl-new .hand .card .pips{display:block;position:absolute;inset:0;pointer-events:none}
-.cl-new .hand .card .pips i{position:absolute;font-style:normal;font-size:calc(var(--cw)*.18);line-height:1;transform:translate(-50%,-50%)}
-.cl-new .hand .card .pips i.fl{transform:translate(-50%,-50%) rotate(180deg)}
-.cl-new .hand .card:has(.pips) .st{display:none}
+.cl-new :is(.hand,.center) .card .pips{display:block;position:absolute;inset:0;pointer-events:none}
+.cl-new :is(.hand,.center) .card .pips i{position:absolute;font-style:normal;font-size:calc(var(--cw)*.18);line-height:1;transform:translate(-50%,-50%)}
+.cl-new :is(.hand,.center) .card .pips i.fl{transform:translate(-50%,-50%) rotate(180deg)}
+.cl-new :is(.hand,.center) .card:has(.pips) .st{display:none}
 .hand .card.no{opacity:.42}
 .cl-new .hand .card.no{opacity:1;filter:brightness(.62) saturate(.6)}
 .hand .card{position:relative}
@@ -1684,7 +1684,7 @@ function faceSvg(c){
   else if(r==='Q') top='<path d="M21.5 20Q20 31 25 33L27 22ZM38.5 20Q40 31 35 33L33 22Z" fill="#d9a441" stroke="'+k+'" stroke-width=".4"/>'+head+'<path d="M22 13Q30 8 38 13L38.5 18Q30 11.5 21.5 18Z" fill="#d9a441" stroke="'+k+'" stroke-width=".4"/><path d="M22.5 11.5L23.5 5.5L26.5 9L30 4L33.5 9L36.5 5.5L37.5 11.5Z" fill="#f2c230" stroke="'+k+'" stroke-width=".5"/><circle cx="23.5" cy="5.2" r=".9" fill="#d0201b"/><circle cx="30" cy="3.7" r=".9" fill="#d0201b"/><circle cx="36.5" cy="5.2" r=".9" fill="#d0201b"/>';
   else top='<path d="M22.5 20Q21 27 24.5 29L26 21ZM37.5 20Q39 27 35.5 29L34 21Z" fill="#7a4b22" stroke="'+k+'" stroke-width=".4"/>'+head+'<path d="M22.5 15Q24 5 36 7Q40 9 38.5 15Q30 9 22.5 15Z" fill="#d0201b" stroke="'+k+'" stroke-width=".5"/><path d="M36 8Q44 2 46 -1" stroke="#f2c230" stroke-width="1.4" fill="none"/>';
   var g='<g>'+body+top+'</g>';
-  return '<svg class="fc" viewBox="0 0 60 120" preserveAspectRatio="none" aria-hidden="true"><rect x=".6" y=".6" width="58.8" height="118.8" fill="#fff" stroke="#3b5aa8"/>'+g+'<g transform="rotate(180 30 60)">'+g+'</g><line x1="2" y1="60" x2="58" y2="60" stroke="#3b5aa8" stroke-width=".3"/><text x="49" y="110" font-size="17" text-anchor="middle" fill="currentColor" transform="rotate(180 49 104)">'+sy+'</text></svg>';
+  return '<svg class="fc" viewBox="0 0 60 120" preserveAspectRatio="none" aria-hidden="true">'+g+'<g transform="rotate(180 30 60)">'+g+'</g><line x1="2" y1="60" x2="58" y2="60" stroke="#3b5aa8" stroke-width=".3"/><text x="49" y="110" font-size="17" text-anchor="middle" fill="currentColor" transform="rotate(180 49 104)">'+sy+'</text></svg>';
 }
 /* suit symbols drawn as shapes, so they look the same on every device (font glyphs differ in size between systems) */
 var SUITP={H:'<path d="M50 92C20 68 5 50 5 33 5 18 16 8 29 8c10 0 17 6 21 13 4-7 11-13 21-13 13 0 24 10 24 25 0 17-15 35-45 59z"/>',
@@ -1696,7 +1696,7 @@ function cardEl(c,extra,tag){
   var t = tag || 'div';
   return '<'+t+' class="card s-'+c.s+(isRed(c.s)?' red':'')+(extra?' '+extra:'')+'" data-id="'+cid(c)+'"'+(t==='button'?' type="button" aria-label="'+c.r+' '+SNAME[c.s]+'"':'')+'>'+(!CNEW ? '<span class="rk">'+c.r+'</span><span class="st">'+suitSvg(c.s)+'</span>' : '<span class="rk'+(c.r==='10'?' r10':'')+'">'+c.r+'<span class="rs" aria-hidden="true">'+suitSvg(c.s)+'</span></span>'+(c.r==='J'||c.r==='Q'||c.r==='K' ? faceSvg(c) : '<span class="st">'+suitSvg(c.s)+'</span>'+pipsEl(c)))+'</'+t+'>';
 }
-/* pips of the 7-10 (classic layout): shown only on the larger cards of the hand, the cards on the table keep the single big suit */
+/* pips of the 7-10 («Classic cards» layout): shown on the cards of the hand and on the table */
 var PIPS={'7':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35]],'8':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35],[1,.65]],'9':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.5]],'10':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.285],[1,.715]]};
 function pipsEl(c){
   var a=PIPS[c.r]; if(!a) return '';
