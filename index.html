@@ -4507,6 +4507,8 @@ function mpClientShow(S){
     G.contest={winner:S.rv.w}; G.rev=S.rv.rev; G.decl=S.rv.dl; G.revealNote=S.rv.note;
     csApply(); var h=revealHTML(S.rv.note); rvEl.innerHTML=h; rvEl.hidden=!h;
   } else { rvEl.hidden=true; rvEl.innerHTML=''; }
+  /* render() ran before this, so the «Δηλώσεις» button must follow the new reveal text here (otherwise it stays hidden until the next state arrives) */
+  var bd=$('#btnDecl'); if(bd) bd.hidden=!rvEl.innerHTML.trim();
 }
 /* "are you still there?" overlay (25 s without a move) and the "a bot replaced you" overlay */
 var AFKW={mode:'',t:null,left:0,el:null};
