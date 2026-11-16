@@ -3251,11 +3251,11 @@ function acctErr(e){
   return 'Κάτι πήγε στραβά. Έλεγξε το internet και δοκίμασε ξανά.';
 }
 function acctT(){ return mpTransport(); }
-/* appearance settings follow the account: after a reinstall they come back by themselves. Only values that differ from the default are saved to users/UID/prefs; on a phone where a setting is still the default, the cloud value is applied (and the app reloads once). Nothing is saved before the first check has finished, so a fresh install never overwrites the cloud with defaults. */
+/* (reload guard is time-based: a second login in the same tab must reload too) appearance settings follow the account: after a reinstall they come back by themselves. Only values that differ from the default are saved to users/UID/prefs; on a phone where a setting is still the default, the cloud value is applied (and the app reloads once). Nothing is saved before the first check has finished, so a fresh install never overwrites the cloud with defaults. */
 var PREFD={'pil.felt':'green','pil.frame':'1','pil.ts':'shoe','pil.pbg':'plain','pil.back':'classic','pil.snd':'1','pil.anim':'1','pil.coach':'0','pil.emoOff':'0','pil.hid':'0','pil.cards':'classic','pil.emo':null}, PREFT=null, PREFOK=false, PREFC=null;
 function prefsIsDef(k,v){ return v===null || v===undefined || v===PREFD[k]; }
 function prefsLocal(){ var o={}; Object.keys(PREFD).forEach(function(k){ var v=store.get(k); if(v===null || v===undefined) v=PREFD[k]; if(v!==null && v!==undefined) o[k.slice(4)]=String(v).slice(0,200); }); var t=prefsT(); if(t) o.t=String(t); return o; }
-/* every change of an appearance setting is stamped, so the newer device wins (also when something is set back to the default) */
+/* every real change of an appearance setting is stamped, so the newer device wins (also when something is set back to the default). Re-writing the same value (e.g. setCards at startup) must NOT stamp, otherwise a freshly opened browser always looks newer than the cloud and overwrites it with defaults */
 function prefsT(){ return parseInt(store.get('pil.prefT')||'0',10)||0; }
 function prefsPush(){
   if(!PREFOK) return;
@@ -3275,13 +3275,13 @@ async function prefsSync(){
     } else if(!ct && cloud && typeof cloud==='object'){
       Object.keys(cl).forEach(function(k){ var kk='pil.'+k; if(kk in PREFD && typeof cl[k]==='string' && prefsIsDef(kk,store.get(kk)) && store.get(kk)!==cl[k]){ store.set(kk,cl[k].slice(0,200)); got=true; } });
     }
-    if(got){ var fl=false; try{ fl=sessionStorage.getItem('pil.pfx'); sessionStorage.setItem('pil.pfx','1'); }catch(e){} if(!fl){ location.reload(); return; } }
+    if(got){ var fl=0; try{ fl=parseInt(sessionStorage.getItem('pil.pfx')||'0',10)||0; }catch(e){} if(Date.now()-fl>30000){ try{ sessionStorage.setItem('pil.pfx',String(Date.now())); }catch(e){} location.reload(); return; } }
     PREFOK=true; PREFC=cl;
     if(!ct && !lt){ var dn=Object.keys(PREFD).some(function(kk){ return !prefsIsDef(kk,store.get(kk)); }); if(dn){ try{ Storage.prototype.setItem.call(localStorage,'pil.prefT',String(Date.now())); }catch(e){} } }
     var now=prefsLocal(); if(JSON.stringify(cl)!==JSON.stringify(now) && prefsT()>=ct) prefsPush();
   }catch(e){}
 }
-try{ var _lsSet=Storage.prototype.setItem; Storage.prototype.setItem=function(k){ var r=_lsSet.apply(this,arguments); try{ if(this===window.localStorage && (k in PREFD)){ _lsSet.call(this,'pil.prefT',String(Date.now())); prefsPush(); } }catch(e){} return r; }; }catch(e){}
+try{ var _lsSet=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ var ch=true; try{ if(this===window.localStorage && (k in PREFD)){ var o=this.getItem(k); if(o===null) o=PREFD[k]; ch=(o===null || o===undefined || String(o)!==String(v)); } }catch(e){} var r=_lsSet.apply(this,arguments); try{ if(ch && this===window.localStorage && (k in PREFD)){ _lsSet.call(this,'pil.prefT',String(Date.now())); prefsPush(); } }catch(e){} return r; }; }catch(e){}
 
 /* Google sign-in inside the Android app: the native SocialLogin plugin (@capgo/capacitor-social-login v6) gives an idToken,
    Firebase signs in with it. On the web the popup flow below is used as before. */
