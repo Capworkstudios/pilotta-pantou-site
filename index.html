@@ -502,8 +502,9 @@ var FELTS={green:['Πράσινο'],white:['Άσπρο','#f0efe8','#d3d1c4','#14
   FELTS.go_navy=['Ναυτικό μπλε','#14275a','#0a1431','#f6e3a8','repeating-linear-gradient(0deg,rgba(242,193,78,.14) 0 1px,transparent 1px 12px)'];
 })();
 function setFelt(c){
-  if(!FELTS[c] || plusLocked('felt',c)) c='green';
-  FELT=c; try{ localStorage.setItem('pil.felt',c); }catch(e){}
+  var lk=!!(FELTS[c] && plusLocked('felt',c));   /* locked (or Plus not loaded yet): show the standard one but keep the saved choice, so it is not lost and not pushed to the cloud */
+  if(!FELTS[c] || lk) c='green';
+  FELT=c; if(!lk){ try{ localStorage.setItem('pil.felt',c); }catch(e){} }
   var st=document.documentElement.style, T=FELTS[c];
   ['--felt','--felt2','--felt-ink'].forEach(function(k,i){ if(T[i+1]) st.setProperty(k,T[i+1]); else st.removeProperty(k); });
   if(T[4]) st.setProperty('--tex',T[4]); else st.removeProperty('--tex');
@@ -578,8 +579,9 @@ var PBGS={plain:['Απλό'],linen:['Λινό','#f5ead6','#efe1c8','#2a2116','#1
 function pbgDark(){ var t=document.documentElement.getAttribute('data-theme'); if(t) return t==='dark'; try{ return matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; } }
 function pbgCss(c){ var T=PBGS[c], d=pbgDark(); if(!T || !T[1]) return ''; var a=d?T[3]:T[1], b=d?T[4]:T[2], pt=d?T[6]:T[5]; return (pt?pt+',':'')+b+' linear-gradient(180deg,'+a+','+b+') no-repeat'; }
 function setPbg(c){
-  if(!PBGS[c] || plusLocked('pbg',c)) c='plain';
-  PBG=c; try{ localStorage.setItem('pil.pbg',c); }catch(e){}
+  var lk=!!(PBGS[c] && plusLocked('pbg',c));
+  if(!PBGS[c] || lk) c='plain';
+  PBG=c; if(!lk){ try{ localStorage.setItem('pil.pbg',c); }catch(e){} }
   var v=pbgCss(c), st=document.documentElement.style;
   if(v) st.setProperty('--pagebg',v); else st.removeProperty('--pagebg');
 }
@@ -650,8 +652,9 @@ function backSvg(o){
 }
 function backCss(id){ var o=BACKS[id]; return (o && o.c1) ? 'background:'+o.c2+' url(\'data:image/svg+xml,'+encodeURIComponent(backSvg(o))+'\') center/cover no-repeat' : ''; }
 function setBack(id){
-  if(!BACKS[id] || plusLocked('back',id)) id='classic';
-  BACK=id; try{ localStorage.setItem('pil.back',id); }catch(e){}
+  var lk=!!(BACKS[id] && plusLocked('back',id));
+  if(!BACKS[id] || lk) id='classic';
+  BACK=id; if(!lk){ try{ localStorage.setItem('pil.back',id); }catch(e){} }
   var el=document.getElementById('skinBack');
   if(!el){ el=document.createElement('style'); el.id='skinBack'; document.head.appendChild(el); }
   var c=backCss(id); el.textContent=c?(':root .back:not(.sw),:root .pile i,:root .card.flyb{'+c+'}'):''  /* :root makes it win over the default skin, wherever the main stylesheet sits */;
@@ -2874,7 +2877,7 @@ function hasPlus(){
 function plusLocked(kind,id){ if(typeof ITEMCAT==='undefined') return false; var c=catOf(kind,id); if(PLUS_CATS[c]) return !hasPlus(); if(PAID_CATS[c]) return !themeOwned(c); return false; }
 /* after the Plus status is known: a locked choice goes back to the standard one */
 function plusApply(){
-  setFelt(FELT); setPbg(PBG); setBack(BACK);
+  setFelt(store.get('pil.felt')||FELT); setPbg(store.get('pil.pbg')||PBG); setBack(store.get('pil.back')||BACK);
   if(hasPlus()) adsBanner(false);
   if(plusLocked('av',AV)){ AV='crown'; store.set('pil.av',AV); }
   var ch=false; EMOLOAD=EMOLOAD.map(function(x,i){ if(plusLocked('emo',x)){ ch=true; var d=EMO_DEF.filter(function(e){ return EMOLOAD.indexOf(e)<0; })[0]; return d||EMO_DEF[i]; } return x; });
