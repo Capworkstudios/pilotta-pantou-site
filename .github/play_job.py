@@ -15,7 +15,7 @@ PKG = 'app.pilotta.pantou'
 SUB_PID = 'pilotta_plus'
 # product id -> (theme, needs Plus)
 PRODUCTS = {}
-for _t in ('cafe', 'neon', 'med', 'gold'):
+for _t in ('cafe', 'neon', 'med', 'gold', 'fbgw', 'fbyb', 'fbbw', 'fbyg', 'fbgk', 'fbrw'):
     PRODUCTS['theme_' + _t] = (_t, False)
     PRODUCTS['theme_' + _t + '_plus'] = (_t, True)
 

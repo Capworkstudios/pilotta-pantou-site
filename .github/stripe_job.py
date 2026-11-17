@@ -11,7 +11,7 @@ SA = os.environ.get('FIREBASE_SA', '').strip()
 DB_URL = 'https://pilotta-anywhere-default-rtdb.europe-west1.firebasedatabase.app'
 PLUS_MIN = 299            # euro cents
 LOOKBACK = 3 * 86400      # first run, and overlap on every run: sessions of the last 3 days are looked at again
-THEMES = ('cafe', 'neon', 'med', 'gold')
+THEMES = ('cafe', 'neon', 'med', 'gold', 'fbgw', 'fbyb', 'fbbw', 'fbyg', 'fbgk', 'fbrw')
 # Payment Links of the themes (live mode): payment link id -> (default theme, price in euro cents, needs Plus).
 # One link per price serves every theme: the app sends client_reference_id = <uid>__<theme>; a link without the suffix gives the default theme
 THEME_LINKS = {
