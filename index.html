@@ -507,8 +507,8 @@ var FELTS={green:['Πράσινο'],white:['Άσπρο','#f0efe8','#d3d1c4','#14
   FELTS.go_navy=['Ναυτικό μπλε','#14275a','#0a1431','#f6e3a8','repeating-linear-gradient(0deg,rgba(242,193,78,.14) 0 1px,transparent 1px 12px)'];
 })();
 function setFelt(c){
-  var lk=!!(FELTS[c] && plusLocked('felt',c));   /* locked (or Plus not loaded yet): show the standard one but keep the saved choice, so it is not lost and not pushed to the cloud */
-  if(!FELTS[c] || lk) c='green';
+  var lk=!!(FELTS[c] && plusLocked('felt',c)) || !FELTS[c];   /* locked, or not registered yet (the football themes come later in the file): show the standard one but keep the saved choice, so it is not lost and not pushed to the cloud */
+  if(lk) c='green';
   FELT=c; if(!lk){ try{ localStorage.setItem('pil.felt',c); }catch(e){} }
   var st=document.documentElement.style, T=FELTS[c];
   ['--felt','--felt2','--felt-ink'].forEach(function(k,i){ if(T[i+1]) st.setProperty(k,T[i+1]); else st.removeProperty(k); });
@@ -584,8 +584,8 @@ var PBGS={plain:['Απλό'],linen:['Λινό','#f5ead6','#efe1c8','#2a2116','#1
 function pbgDark(){ var t=document.documentElement.getAttribute('data-theme'); if(t) return t==='dark'; try{ return matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; } }
 function pbgCss(c){ var T=PBGS[c], d=pbgDark(); if(!T || !T[1]) return ''; var a=d?T[3]:T[1], b=d?T[4]:T[2], pt=d?T[6]:T[5]; return (pt?pt+',':'')+b+' linear-gradient(180deg,'+a+','+b+') no-repeat'; }
 function setPbg(c){
-  var lk=!!(PBGS[c] && plusLocked('pbg',c));
-  if(!PBGS[c] || lk) c='plain';
+  var lk=!!(PBGS[c] && plusLocked('pbg',c)) || !PBGS[c];   /* (unknown/not yet registered: keep the saved choice) */
+  if(lk) c='plain';
   PBG=c; if(!lk){ try{ localStorage.setItem('pil.pbg',c); }catch(e){} }
   var v=pbgCss(c), st=document.documentElement.style;
   if(v) st.setProperty('--pagebg',v); else st.removeProperty('--pagebg');
@@ -664,8 +664,8 @@ function backSvg(o){
 }
 function backCss(id){ var o=BACKS[id]; return (o && o.c1) ? 'background:'+o.c2+' url(\'data:image/svg+xml,'+encodeURIComponent(backSvg(o))+'\') center/cover no-repeat' : ''; }
 function setBack(id){
-  var lk=!!(BACKS[id] && plusLocked('back',id));
-  if(!BACKS[id] || lk) id='classic';
+  var lk=!!(BACKS[id] && plusLocked('back',id)) || !BACKS[id];   /* (unknown/not yet registered: keep the saved choice) */
+  if(lk) id='classic';
   BACK=id; if(!lk){ try{ localStorage.setItem('pil.back',id); }catch(e){} }
   var el=document.getElementById('skinBack');
   if(!el){ el=document.createElement('style'); el.id='skinBack'; document.head.appendChild(el); }
@@ -2900,6 +2900,8 @@ Object.keys(FBV).forEach(function(k){ var v=FBV[k], c='fb'+k;
 function themeOwned(c){
   if(typeof ACCT==='undefined') return false;
   if(ACCT.themes && ACCT.themes[c]) return true;
+  /* the server list is not loaded yet (app start, no internet): use the copy saved the last time it was loaded, like Plus */
+  if(!ACCT.themes && ACCT.user){ try{ var L=JSON.parse(localStorage.getItem('pil.thm.'+ACCT.user.uid)||'null'); if(L && L[c]) return true; }catch(e){} }
   /* bought in the app and not yet confirmed by the server (the server job checks the Google Play purchase, up to an hour later) */
   try{ return !!(ACCT.user && localStorage.getItem('pil.thx.'+ACCT.user.uid+'.'+c)==='1'); }catch(e){ return false; }
 }
@@ -2955,9 +2957,10 @@ function hasPlus(){
 }
 /* the pickers list only what the player can use: the standard items and the themes he owns (the Store sells the rest) */
 function ownIds(kind,src){ return Object.keys(src).filter(function(id){ return !plusLocked(kind,id); }); }
-function plusLocked(kind,id){ if(typeof ITEMCAT==='undefined') return false; var c=catOf(kind,id); if(PLUS_CATS[c]) return !hasPlus(); if(PAID_CATS[c]) return !themeOwned(c); return false; }
+function plusLocked(kind,id){ if(typeof ITEMCAT==='undefined') return false; var c=catOf(kind,id); if(PLUS_CATS[c]) return !hasPlus(); if(PAID_CATS[c]) return !themeOwned(c) && !(ACCT.user && !ACCT.themes); return false; }   /* signed in but the themes are not loaded yet: not locked (the choices must not be reset at app start or without internet) */
 /* after the Plus status is known: a locked choice goes back to the standard one */
 function plusApply(){
+  { var sa=store.get('pil.av'); if(sa && AVS[sa]) AV=sa; }   /* the avatar saved on the phone; at the start a football avatar was not registered yet and AV had fallen back to the crown */
   setFelt(store.get('pil.felt')||FELT); setPbg(store.get('pil.pbg')||PBG); setBack(store.get('pil.back')||BACK);
   if(hasPlus()) adsBanner(false);
   if(plusLocked('av',AV)){ AV='crown'; store.set('pil.av',AV); }
@@ -3860,7 +3863,7 @@ async function stLoad(){
     ST=Object.assign(stBlank(),v||{},{loaded:true,pub:true});
     await tcLoad();
     var pr=await T.get('users/'+uid+'/profile').catch(function(){ return null; }) || {};
-    ACCT.themes=(await T.get('users/'+uid+'/themes').catch(function(){ return null; })) || {}; ACCT.plus=!!(await T.get('users/'+uid+'/plus').catch(function(){ return null; })); try{ if(ACCT.plus) localStorage.setItem('pil.plus',uid); else localStorage.removeItem('pil.plus'); }catch(e){} plusApply(); themesRestore();
+    var thOk=true, thv=await T.get('users/'+uid+'/themes').catch(function(){ thOk=false; return null; }); if(thOk){ ACCT.themes=thv||{}; try{ localStorage.setItem('pil.thm.'+uid,JSON.stringify(ACCT.themes)); }catch(e){} } ACCT.plus=!!(await T.get('users/'+uid+'/plus').catch(function(){ return null; })); try{ if(ACCT.plus) localStorage.setItem('pil.plus',uid); else localStorage.removeItem('pil.plus'); }catch(e){} plusApply(); themesRestore();
     /* Plus given or taken while the app is open: unlock (or lock) right away */
     if(ACCT.plusUid!==uid){
       if(ACCT.plusUn){ try{ ACCT.plusUn(); }catch(e){} }
