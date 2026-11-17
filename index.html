@@ -285,6 +285,7 @@ h1{font-family:var(--f-disp);font-size:23px;font-weight:800;margin:0;letter-spac
 .pbg-on header.top h1 .bt,.pbg-on .handhead .lbl{background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);border-radius:10px;padding:2px 8px;margin-left:-8px}
 .pbg-on .handhead .lbl{margin-left:0}
 .pbg-on #table .seat .nm,.pbg-on #table .seat .tg{background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);border-radius:8px;padding:1px 6px}
+.pbg-on #table .seat .tg:empty{background:none;padding:0}   /* an empty line under a name must not show as a black pill */
 body.page .app{display:none}
 .ov.page .sheet{background:transparent;padding:8px 0}
 .ov.page .sheet.home{gap:16px}
