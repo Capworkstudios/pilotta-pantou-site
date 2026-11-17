@@ -3375,7 +3375,7 @@ function acctErr(e){
 }
 function acctT(){ return mpTransport(); }
 /* (reload guard is time-based: a second login in the same tab must reload too) appearance settings follow the account: after a reinstall they come back by themselves. Only values that differ from the default are saved to users/UID/prefs; on a phone where a setting is still the default, the cloud value is applied (and the app reloads once). Nothing is saved before the first check has finished, so a fresh install never overwrites the cloud with defaults. */
-var PREFD={'pil.felt':'green','pil.frame':'1','pil.ts':'shoe','pil.pbg':'plain','pil.back':'classic','pil.snd':'1','pil.anim':'1','pil.coach':'0','pil.emoOff':'0','pil.hid':'0','pil.cards':'classic','pil.emo':null}, PREFT=null, PREFOK=false, PREFC=null;
+var PREFD={'pil.felt':'green','pil.frame':'1','pil.ts':'shoe','pil.pbg':'plain','pil.back':'classic','pil.snd':'1','pil.anim':'1','pil.coach':'0','pil.emoOff':'0','pil.hid':'0','pil.cards':'classic','pil.emo':null,'pil.av':'crown'}, PREFT=null, PREFOK=false, PREFC=null;
 function prefsIsDef(k,v){ return v===null || v===undefined || v===PREFD[k]; }
 function prefsLocal(){ var o={}; Object.keys(PREFD).forEach(function(k){ var v=store.get(k); if(v===null || v===undefined) v=PREFD[k]; if(v!==null && v!==undefined) o[k.slice(4)]=String(v).slice(0,200); }); var t=prefsT(); if(t) o.t=String(t); return o; }
 /* every real change of an appearance setting is stamped, so the newer device wins (also when something is set back to the default). Re-writing the same value (e.g. setCards at startup) must NOT stamp, otherwise a freshly opened browser always looks newer than the cloud and overwrites it with defaults */
