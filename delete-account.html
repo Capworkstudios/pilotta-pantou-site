@@ -96,7 +96,7 @@ section[lang].on{display:block}
 (function(){
   function pick(){
     var h=(location.hash||'').replace('#','');
-    if(h!=='el'&&h!=='en'){ var l=(navigator.language||'el').toLowerCase(); h=(l.indexOf('el')===0)?'el':'en'; }
+    if(h!=='el'&&h!=='en'){ h='el'; try{ if(localStorage.getItem('pil.lang')==='en') h='en'; }catch(e){} }
     document.getElementById('el').className=h==='el'?'on':'';
     document.getElementById('en').className=h==='en'?'on':'';
     document.documentElement.lang=h;
