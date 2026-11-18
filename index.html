@@ -1519,6 +1519,12 @@ function botPick(p,hand,L){
        && (cpts(cheap,tr)+trick.reduce(function(a,x){ return a+cpts(x.c,tr); },0))>=10) return winners.filter(function(c){ return c.s===tr && c.r==='9'; })[0];
     /* my team bid and no trump is out yet: the Jack or the 9 must not be spent cutting a side suit. If my partner (behind me) holds the Jack he would be forced to overtrump it
        and the opponents keep the strong trumps */
+    /* exception: the 9 with ONE other trump, cutting a suit for the first time (nothing of it was played before): cut with the 9, then the small trump leads next and forces the opponents'
+       strong trumps out for us to take. It depends on the game, so only when the trick carries points */
+    if(ourBid && noTrOut && led!==tr && myTr.length===2 && has(hand,'9',tr) && !has(hand,'J',tr) && cheap.r!=='9'
+       && !G.deckAll.some(function(x){ return x.s===led && G.played.has(cid(x)) && !trick.some(function(t){ return cid(t.c)===cid(x); }); })
+       && winners.some(function(c){ return c.s===tr && c.r==='9'; })
+       && trick.reduce(function(a,x){ return a+cpts(x.c,tr); },0)>=10) return winners.filter(function(c){ return c.s===tr && c.r==='9'; })[0];
     if(ourBid && noTrOut && led!==tr) return cheap;
     if(!last && cheap.s===tr && !isMaster(cheap,p)){
       var oppBehind=[(p+1)%4,(p+3)%4].some(function(q){ return !trick.some(function(t){ return t.p===q; }) && !(G.void[q] && G.void[q][tr]); });
