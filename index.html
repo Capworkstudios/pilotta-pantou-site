@@ -1506,7 +1506,18 @@ function botPick(p,hand,L){
     if(smalls.length) return minBy(smalls,pStr);
   }
   var winners=L.filter(function(c){ return trickWinner(trick.concat([{p:p,c:c}]),tr)===p; });
-  if(winners.length) return minBy(winners,function(c){ return c.s===tr ? 100+tStr(c) : pStr(c); });
+  if(winners.length){
+    var cheap=minBy(winners,function(c){ return c.s===tr ? 100+tStr(c) : pStr(c); });
+    /* real games (2125 rounds of 5-18 Nov 2026): the cheapest trump that wins (the Ace, the 10, a small one when cutting) lost the trick 81 times
+       while the Jack was in the hand: an opponent still to play held the 9. Points at risk 10+: win it with the Jack (or the 9 once the Jack is out) */
+    if(!last && cheap.s===tr && !isMaster(cheap,p)){
+      var oppBehind=[(p+1)%4,(p+3)%4].some(function(q){ return !trick.some(function(t){ return t.p===q; }) && !(G.void[q] && G.void[q][tr]); });
+      var atRisk=cpts(cheap,tr)+trick.reduce(function(a,x){ return a+cpts(x.c,tr); },0);
+      var mw=winners.filter(function(c){ return c.s===tr && isMaster(c,p); });
+      if(oppBehind && atRisk>=10 && mw.length) return mw[0];
+    }
+    return cheap;
+  }
   return minBy(L,cost);
 }
 /* last two tricks: simulate random deals of the unseen cards and choose the card that wins the most points (last trick = +10) */
