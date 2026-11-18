@@ -1510,6 +1510,16 @@ function botPick(p,hand,L){
     var cheap=minBy(winners,function(c){ return c.s===tr ? 100+tStr(c) : pStr(c); });
     /* real games (2125 rounds of 5-18 Nov 2026): the cheapest trump that wins (the Ace, the 10, a small one when cutting) lost the trick 81 times
        while the Jack was in the hand: an opponent still to play held the 9. Points at risk 10+: win it with the Jack (or the 9 once the Jack is out) */
+    var ourBid=(G.bid.p%2)===(p%2), noTrOut=G.deckAll.every(function(x){ return x.s!==tr || !G.played.has(cid(x)); });
+    var myTr=hand.filter(function(c){ return c.s===tr; });
+    /* the opponents bid, I hold the 9 with one or two small trumps and I am cutting a side suit: cut with the 9, otherwise an opponent behind overtrumps the small one,
+       and the 9 itself is caught later when the Jack is led */
+    if(!ourBid && !last && led!==tr && wc.s!==tr && has(hand,'9',tr) && myTr.length>=2 && myTr.length<=3 && !has(hand,'J',tr) && cheap.s===tr && cheap.r!=='9'
+       && winners.some(function(c){ return c.s===tr && c.r==='9'; }) && !G.played.has(cid({r:'J',s:tr}))
+       && (cpts(cheap,tr)+trick.reduce(function(a,x){ return a+cpts(x.c,tr); },0))>=10) return winners.filter(function(c){ return c.s===tr && c.r==='9'; })[0];
+    /* my team bid and no trump is out yet: the Jack or the 9 must not be spent cutting a side suit. If my partner (behind me) holds the Jack he would be forced to overtrump it
+       and the opponents keep the strong trumps */
+    if(ourBid && noTrOut && led!==tr) return cheap;
     if(!last && cheap.s===tr && !isMaster(cheap,p)){
       var oppBehind=[(p+1)%4,(p+3)%4].some(function(q){ return !trick.some(function(t){ return t.p===q; }) && !(G.void[q] && G.void[q][tr]); });
       var atRisk=cpts(cheap,tr)+trick.reduce(function(a,x){ return a+cpts(x.c,tr); },0);
