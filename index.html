@@ -2709,14 +2709,13 @@ function onlineStart(){
   ONLINE.on=true; AWAY.on=false; AWAY.last=0; awayPoke();
   acctT().init().then(function(){
     var fb=window.firebase; if(!fb || !fb.database || !ONLINE.on) return;
-    var db=fb.database(), ref=db.ref('live/n'), inc=fb.database.ServerValue.increment;
-    ONLINE.ref=ref; ONLINE.inc=inc;
-    ONLINE.conn=function(s){ if(s.val()===true && ONLINE.on && !AWAY.on) ref.set(inc(1)).then(function(){ return ref.onDisconnect().set(inc(-1)); }).catch(function(){}); };
-    /* one entry per open app (live/cu/PLAYER/RANDOM), removed on disconnect: every hour the server job counts the players and corrects live/n,
-       so the counter cannot drift when a -1 on disconnect gets lost */
+    var db=fb.database(), ref=db.ref('live/on');   /* live/on/RANDOM-ID: one entry per open app, no account id in it; the counter is the number of entries */
+    ONLINE.ref=ref;
+    /* live/cu/PLAYER/RANDOM (one entry per open app, removed on disconnect) is only for the hourly server job, which keeps live/n right for the older app versions that still count with +1/-1 */
     if(!ONLINE.cid) ONLINE.cid='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    var oref=ref.child(ONLINE.cid); ONLINE.oref=oref;
     var cref=db.ref('live/cu/'+ACCT.user.uid+'/'+ONLINE.cid); ONLINE.cref=cref;   /* per player: the hourly job counts each player once, even with several devices open */
-    ONLINE.cconn=function(s){ if(s.val()===true && ONLINE.on && !AWAY.on) cref.set(true).then(function(){ return cref.onDisconnect().remove(); }).catch(function(){}); };
+    ONLINE.cconn=function(s){ if(s.val()===true && ONLINE.on && !AWAY.on){ cref.set(true).then(function(){ return cref.onDisconnect().remove(); }).catch(function(){}); oref.set(true).then(function(){ return oref.onDisconnect().remove(); }).catch(function(){}); } };
     /* the names of the players who are online (live/who/PLAYER = username), for the list that opens from the counter: removed when away, when the app closes, or when the player hides his name in the settings */
     var wref=db.ref('live/who/'+ACCT.user.uid); ONLINE.wref=wref;
     ONLINE.wset=function(){ if(!ONLINE.on || !ACCT.user) return;
@@ -2724,9 +2723,8 @@ function onlineStart(){
       else { var wv={u:ACCT.user.username}; if(ONLINE.pl) wv.p=true; else if(AWAY.on) wv.a=true; wref.set(wv).then(function(){ return wref.onDisconnect().remove(); }).catch(function(){}); } };
     ONLINE.wconn=function(s){ if(s.val()===true) ONLINE.wset(); };
     db.ref('.info/connected').on('value',ONLINE.wconn);
-    db.ref('.info/connected').on('value',ONLINE.cconn);   /* +1 first: the rules check the -1 of onDisconnect against the value at the time it is registered */
-    ONLINE.val=function(s){ ONLINE.n=Math.max(AWAY.on?0:1,Number(s.val())||0); honRefresh(); };
-    db.ref('.info/connected').on('value',ONLINE.conn);
+    db.ref('.info/connected').on('value',ONLINE.cconn);   
+    ONLINE.val=function(s){ ONLINE.n=Math.max(AWAY.on?0:1,s.numChildren()); honRefresh(); };
     ref.on('value',ONLINE.val,function(){ ONLINE.n=0; honRefresh(); });
     /* my presence (read only by my friends), my friends' presence, and invitations to tables */
     /* one entry per device (pres/ME/DEVICE): a second device, or a device that was signed out, does not hide the one still open */
@@ -2759,7 +2757,7 @@ function onlineStop(){
   try{ var db0=window.firebase.database(); db0.ref('.info/connected').off('value',ONLINE.pconn); if(ONLINE.pres){ ONLINE.pres.onDisconnect().cancel(); ONLINE.pres.remove().catch(function(){}); }
     if(FRON.ref) FRON.ref.off('value',FRON.fn); Object.keys(FRON.subs).forEach(function(f){ FRON.subs[f].off('value'); }); FRON.subs={}; FRON.on={}; FRON.aw={}; FRON.pl={}; fronRefresh();
     if(INV.ref) INV.ref.off('child_added',INV.fn); if(UNR.mref) UNR.mref.off('value',UNR.mfn); Object.keys(UNR.q).forEach(unrDrop); UNR.mk={}; unrRefresh(); }catch(e){}
-  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.conn); db.ref('.info/connected').off('value',ONLINE.cconn); db.ref('.info/connected').off('value',ONLINE.wconn); if(ONLINE.wref){ ONLINE.wref.onDisconnect().cancel(); ONLINE.wref.remove().catch(function(){}); } if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); } if(ONLINE.ref){ ONLINE.ref.off('value',ONLINE.val); ONLINE.ref.onDisconnect().cancel(); ONLINE.ref.set(ONLINE.inc(-1)).catch(function(){}); } }catch(e){}
+  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.cconn); db.ref('.info/connected').off('value',ONLINE.wconn); if(ONLINE.wref){ ONLINE.wref.onDisconnect().cancel(); ONLINE.wref.remove().catch(function(){}); } if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); } if(ONLINE.ref) ONLINE.ref.off('value',ONLINE.val); if(ONLINE.oref){ ONLINE.oref.onDisconnect().cancel(); ONLINE.oref.remove().catch(function(){}); } }catch(e){}
   ONLINE.n=0; honRefresh();
 }
 /* the list of the players who are online (opens from the counter in the main menu): name, tap for the profile */
@@ -2798,16 +2796,16 @@ function presState(x){
 /* away: 15 minutes without any tap or key: yellow dot for the friends, not counted in the online numbers; the first tap brings you back */
 var AWAY={on:false,t:null,last:0,ms:15*60000};
 function awaySet(away){
-  if(!ONLINE.on || !ONLINE.ref) return;
-  var ref=ONLINE.ref, inc=ONLINE.inc;
+  if(!ONLINE.on || !ONLINE.oref) return;
+  var oref=ONLINE.oref;
   if(ONLINE.wset) ONLINE.wset();
   if(ONLINE.pres) ONLINE.pres.set(away?'away':true).catch(function(){});
   if(away){
     if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); }
-    ref.onDisconnect().cancel().then(function(){ return ref.set(inc(-1)); }).catch(function(){});
+    oref.onDisconnect().cancel().then(function(){ return oref.remove(); }).catch(function(){});
   } else {
     if(ONLINE.cref) ONLINE.cref.set(true).then(function(){ return ONLINE.cref.onDisconnect().remove(); }).catch(function(){});
-    ref.set(inc(1)).then(function(){ return ref.onDisconnect().set(inc(-1)); }).catch(function(){});
+    oref.set(true).then(function(){ return oref.onDisconnect().remove(); }).catch(function(){});
   }
 }
 function awayPoke(){
