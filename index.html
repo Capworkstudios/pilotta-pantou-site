@@ -2203,7 +2203,9 @@ function claimBoxShow(cs){
   if(!el){ el=document.createElement('div'); el.id='clBox'; el.className='clbox'; document.body.appendChild(el); }
   el.dataset.k=JSON.stringify(cs);
   var order=[0,1,2,3].map(function(i){ return (G.me+i)%4; });
-  el.innerHTML='<div class="clin"><h3>Τα φύλλα που έμειναν</h3>'+order.map(function(q){
+  /* the title says what happened (it replaces the short toast, which was hidden behind this window) */
+  var ttl = cs.p<0 ? 'Το παιχνίδι κόπηκε. Ο γύρος τελειώνει.' : (cs.p===G.me && !(typeof MP!=='undefined' && MP && MP.on) ? 'Παίρνεις όλες τις υπόλοιπες μπάζες' : nm(cs.p)+' παίρνει όλες τις υπόλοιπες μπάζες');
+  el.innerHTML='<div class="clin"><h3>'+esc(ttl)+'</h3><div class="hint" style="text-align:center;margin-top:-4px">Τα φύλλα που έμειναν</div>'+order.map(function(q){
     var ids=(cs.h && cs.h[q]) || [];
     return '<div class="clrow'+(q===cs.p?' lead':'')+'"><span class="cln">'+esc(nm(q))+'</span><span class="clc">'+(ids.length?ids.map(function(id){ return cardEl(mpCard(id)); }).join(''):'<span class="hint">–</span>')+'</span></div>';
   }).join('')+'</div>';
@@ -2222,7 +2224,6 @@ function bidLost(){
 }
 async function endEarly(){
   G.early=true;
-  toast('Το παιχνίδι κόπηκε. Ο γύρος τελειώνει.',1800);
   waitPanel('Οι αντίπαλοι πήραν αρκετούς πόντους και το παιχνίδι κόπηκε. Ο γύρος τελειώνει εδώ.');
   G.claimShow={p:-1,h:G.hands.map(function(h){ return h.map(cid); })};
   claimBoxShow(G.claimShow); if(typeof mpSchedule==='function') mpSchedule();
@@ -2233,7 +2234,6 @@ async function endEarly(){
 async function claimRest(t0,p){
   var tr=G.trump, n=G.hands[p].length;
   var meP=(p===G.me && !(typeof MP!=='undefined' && MP && MP.on));
-  toast(meP ? 'Παίρνεις όλες τις υπόλοιπες μπάζες' : nm(p)+' παίρνει όλες τις υπόλοιπες μπάζες',1800);
   waitPanel(meP ? 'Τα φύλλα σου είναι τα πιο δυνατά που έμειναν, οπότε παίρνεις τις υπόλοιπες '+n+' μπάζες. Ο γύρος τελειώνει εδώ.' : nm(p)+' έχει τα πιο δυνατά φύλλα που έμειναν και παίρνει τις υπόλοιπες '+n+' μπάζες. Ο γύρος τελειώνει εδώ.');
   G.claimShow={p:p,h:G.hands.map(function(h){ return h.map(cid); })};
   claimBoxShow(G.claimShow); if(typeof mpSchedule==='function') mpSchedule();
