@@ -1182,10 +1182,10 @@ function botBid(p,high,canK){
     }
     /* real games (2125 rounds of 5-18 Nov 2026): the partner bot raising the HUMAN's suit to 130 or more with no declaration of its own
        made it only 47% of the time (47 of 99), and 93% with a declaration. Without a declaration, do not go to 130+ on his suit (the asks for aces keep their rules).
-       Exception: the Jack of his suit and two or more Aces outside it are real support, those points are bid */
+       Exception: the Jack of his suit is real support (1 point, +1 per Ace outside it): those points are always bid, whatever the level (only above 250 nothing is added) */
     if(r.type==='bid' && r.val>=130){
       var pI=lastBidIdx((p+2)%4), pB=pI>=0 ? G.bidLog[pI] : null, sInf=suitInfo(G.hands[p],r.s);
-      if(pB && !(sInf.J && sInf.A>=2) &&((p+2)%4===G.me || (MP.on && MP.ctl[(p+2)%4]==='remote')) && pB.s===r.s && r.val>pB.val && !pB.tri && !pB.dbl && !pB.f2 && (NODECL || declEval(G.hands[p]).total===0)) return {type:'pass'};
+      if(pB && !sInf.J &&((p+2)%4===G.me || (MP.on && MP.ctl[(p+2)%4]==='remote')) && pB.s===r.s && r.val>pB.val && !pB.tri && !pB.dbl && !pB.f2 && (NODECL || declEval(G.hands[p]).total===0)) return {type:'pass'};
     }
     return r;
   } finally{ NODECL=false; }
