@@ -2425,7 +2425,7 @@ function summaryHTML(S0){
    + row('Πιλόττα', r[0].pil, r[1].pil)
    + '<tr class="tot"><td>Σύνολο</td><td>'+S.tot[0]+'</td><td>'+S.tot[1]+'</td></tr></tbody></table>'
    + '<p class="dim" style="color:var(--muted)">Οι πόντοι μετριούνται σε δεκάδες: 10 πόντοι = 1.</p>'
-   + '<button class="btn primary" id="nextR" type="button">'+(S.anapodo?'Συνέχεια':'Επόμενος γύρος')+'</button>';
+   + '<button class="btn primary" id="nextR" type="button">'+((S.anapodo || G.over!==null)?'Συνέχεια':'Επόμενος γύρος')+'</button>';
 }
 
 function checkWinner(){
@@ -2444,7 +2444,8 @@ function load(){
 async function mpRoundEnd(S){
   var ps=[];
   for(var q=0;q<4;q++){
-    if(MP.ctl[q]==='remote') ps.push(mpRemoteAct(q,'next',{S:S},90000));
+    /* the game is over: the other players go straight to the end screen and never press «next», so the host must not wait (it was up to 90 s of a frozen table) */
+    if(MP.ctl[q]==='remote'){ if(G.over===null) ps.push(mpRemoteAct(q,'next',{S:S},90000)); }
     else if(q===G.me && !AUTO){
       openSheet(summaryHTML(S),function(sh){ sh.querySelector('#nextR').addEventListener('click',function(){ closeSheet(); answer(true); }); });
       ps.push(ask());
