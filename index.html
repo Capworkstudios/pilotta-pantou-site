@@ -1585,7 +1585,7 @@ function endMC(p,hand,L,pref){
 }
 function botChoose(p,hand,L){
   var c=botPick(p,hand,L), tr=G.trump;
-  if(hand.length<=2 && L.length>1 && G.trump) c=endMC(p,hand,L,c);
+  if(hand.length<=2 && L.length>1 && G.trump){ var nt0=Date.now(); c=endMC(p,hand,L,c); if(MP.on && NET.bm.length<300) NET.bm.push(Date.now()-nt0); }
   /* pilotta call: with the Queen first it means 3 or more trumps, with the King first it means only the pilotta */
   if(c.s===tr && (c.r==='K' || c.r==='Q') && has(hand,'K',tr) && has(hand,'Q',tr)){
     var want=trumpCount(hand)>=3 ? 'Q' : 'K';
@@ -2059,6 +2059,30 @@ function logRound(S){
   }catch(e){}
 }
 
+/* network speed of an online game, measured on this device's own clock: how long the database takes to confirm my writes (host: the table state, guest: my moves)
+   and how long a bot needs for the end-of-round simulation. One small summary per game is sent when the game ends (no names, no ids). */
+var NET={h:[],g:[],bm:[]};
+function netW(role,fn){
+  var t0=Date.now(), r=fn();
+  try{ if(r && r.then) r.then(function(){ var a=NET[role]; if(a.length<600) a.push(Date.now()-t0); },function(){}); }catch(e){}
+  return r;
+}
+function netPct(a,q){ if(!a.length) return 0; var b=a.slice().sort(function(x,y){ return x-y; }); return b[Math.min(b.length-1,Math.floor(b.length*q))]; }
+function netLog(){
+  try{
+    if(!MP.on || MP.nearby || (AUTO && !window.__LOG)) return;
+    var a=MP.host ? NET.h : NET.g, bm=NET.bm;
+    if(a.length>=5){
+      var cn=navigator.connection||{}, hu=MP.ctl.filter(function(c){ return c!=='bot'; }).length;
+      /* hands:0 only so that the database rule for log/ (it requires a 'hands' child) accepts this record */
+      fbLog({k:'net',v:1,hands:0,ts:Date.now(),role:MP.host?'h':'g',n:a.length,p50:netPct(a,0.5),p95:netPct(a,0.95),mx:Math.max.apply(null,a),
+        bn:bm.length,bp95:netPct(bm,0.95),bmx:bm.length?Math.max.apply(null,bm):0,
+        ct:cn.effectiveType||'',rtt:cn.rtt||0,dl:cn.downlink||0,app:IS_APP?1:0,mob:/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?1:0,
+        hu:hu,qm:MP.auto?1:0,rtc:(RTC.micOn||RTC.camOn)?1:0});
+    }
+    NET.h=[]; NET.g=[]; NET.bm=[];
+  }catch(e){}
+}
 /* when the app runs outside Claude (own site), rounds go to the Firebase project, write-only, without names. Failures are silent: the game also works offline. */
 var LOGT=null, LOGP=null, LOGC=false;
 function fbLog(rec){
@@ -4332,6 +4356,7 @@ function endSheet(){
     if(MP.on && !MP.host && !MP.auto) mpEndWatch(sh);
     if(MP.on && MP.host && !MP.auto) mpHostEndWatch(sh);
   });
+  netLog();
 }
 
 $('#btnRules').addEventListener('click',function(){ showRules(closeSheet,'Κλείσιμο'); });
@@ -4418,7 +4443,7 @@ function mpSchedule(){ if(!MP.on || !MP.host || MP.pubT) return; MP.pubT=setTime
 function mpPublish(){
   if(!MP.on || !MP.host || !MP.T) return;
   var j=JSON.stringify(mpState());
-  if(j!==MP.lastJ){ MP.lastJ=j; MP.T.set(mpBase()+'pub',{n:++MP.n,j:j,g:MP.gid||''}); }
+  if(j!==MP.lastJ){ MP.lastJ=j; netW('h',function(){ return MP.T.set(mpBase()+'pub',{n:++MP.n,j:j,g:MP.gid||''}); }); }
   for(var s=0;s<4;s++){
     if(MP.ctl[s]!=='remote' || !MP.uids[s]) continue;
     var hs=(G.hands[s]||[]).map(cid).join(',');
@@ -4769,7 +4794,7 @@ async function mpClientRun(code,seat,uid){
   }
   async function mpClientTurn(t,S){
     busy=true; MP.curId=t.id;
-    var r=null, send=function(o){ if(MP.curId!==t.id) return; o.id=t.id; MP.T.set(mpBase()+'act/'+seat,o); };
+    var r=null, send=function(o){ if(MP.curId!==t.id) return; o.id=t.id; netW('g',function(){ return MP.T.set(mpBase()+'act/'+seat,o); }); };
     try{
       if(t.kind==='bid'){ r=await humanBid(t.high||null,!!t.canK); if(r && MP.curId===t.id) send({type:r.type,val:r.val||0,s:r.s||''}); }
       else if(t.kind==='play'){
