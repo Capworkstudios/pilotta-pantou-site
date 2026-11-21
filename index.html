@@ -1949,6 +1949,8 @@ function humanBid(high,canK){
   var suit = SUITS.slice().sort(function(a,b){ return counts[b]-counts[a]; })[0];
   var sug = COACH ? coachBid(high,canK) : null;
   if(sug && sug.act.type==='bid'){ val=Math.max(min,Math.min(max,sug.act.val)); suit=sug.act.s; }
+  /* the suit the player picked earlier in this round's bidding stays selected on his next turn */
+  if(G.suitPick && G.suitPick.round===G.round && SUITS.indexOf(G.suitPick.s)>=0) suit=G.suitPick.s;
   var h = ''
     + logHTML()
     + '<div class="row"><button class="btn'+(sug&&sug.act.type==='pass'?' tip':'')+'" data-a="pass" type="button">Πάσο</button>'+(canK?'<button class="btn warn" data-a="klisto" type="button">Κλειστό</button>':'')+'</div>'
@@ -1963,7 +1965,7 @@ function humanBid(high,canK){
       function upd(){ out.textContent=val; go.textContent='Άνοιγμα '+val+' '+SYM[suit]; p.querySelector('#bm1').disabled=p.querySelector('#bm5').disabled=val<=min; p.querySelector('#bp1').disabled=p.querySelector('#bp5').disabled=val>=max; }
       upd();
       [['#bm5',-50],['#bm1',-10],['#bp1',10],['#bp5',50]].forEach(function(d){ p.querySelector(d[0]).addEventListener('click',function(){ val=Math.max(min,Math.min(max,val+d[1])); upd(); }); });
-      p.querySelectorAll('.sbtn').forEach(function(b){ b.addEventListener('click',function(){ suit=b.dataset.s; p.querySelectorAll('.sbtn').forEach(function(x){ x.classList.toggle('sel',x===b); }); upd(); }); });
+      p.querySelectorAll('.sbtn').forEach(function(b){ b.addEventListener('click',function(){ suit=b.dataset.s; G.suitPick={round:G.round,s:suit}; p.querySelectorAll('.sbtn').forEach(function(x){ x.classList.toggle('sel',x===b); }); upd(); }); });
       go.addEventListener('click',function(){ answer({type:'bid',val:val,s:suit}); });
       p.querySelectorAll('[data-a]').forEach(function(b){ b.addEventListener('click',function(){ answer({type:b.dataset.a}); }); });
     });
@@ -2106,7 +2108,7 @@ function log(p,t,bid,val,s){ G.bidLog.push({p:p,t:t,bid:!!bid,val:val,s:s}); }
 
 async function bidding(){
   var cur=(G.dealer+1)%4, passes=0, high=null;
-  G.bidLog=[]; G.trump=null; G.bid=null; G.klistoBy=-1;
+  G.bidLog=[]; G.suitPick=null; G.trump=null; G.bid=null; G.klistoBy=-1;
   while(true){
     if(high && passes>=3) break;
     if(!high && passes>=4) return null;
@@ -2458,7 +2460,7 @@ async function mpRoundEnd(S){
 }
 async function playRound(){
   G.round++;
-  G.early=false; G.dlost=[0,0,0,0]; G.trump=null; G.bid=null; G.mult=1; G.aceBack=null; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.aceSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
+  G.early=false; G.dlost=[0,0,0,0]; G.trump=null; G.bid=null; G.mult=1; G.aceBack=null; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.suitPick=null; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.aceSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
   $('#reveal').hidden=true; $('#reveal').innerHTML='';
   var d=shuffle(newDeck());
   for(var p=0;p<4;p++){ G.hands[p]=d.slice(p*8,p*8+8); sortHand(G.hands[p],null); }
