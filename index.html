@@ -1180,6 +1180,13 @@ function botBid(p,high,canK){
       var myI=lastBidIdx(p), ptI=lastBidIdx((p+2)%4);
       if(myI>=0 && G.bidLog[myI].s===r.s && !(ptI>=0 && G.bidLog[ptI].s===r.s) && !has(G.hands[p],'J',r.s) && (NODECL || declEval(G.hands[p]).total===0)) return {type:'pass'};
     }
+    /* real games (2340 rounds up to 21 Nov 2026): a bot going into the suit the opponents already bid, without its Jack and without a declaration
+       (his own or one his partner showed with a 130+ bid), made it 33% of the time (4 of 4 failed when the partner had nothing either). Pass instead */
+    if(r.type==='bid' && !has(G.hands[p],'J',r.s) && (NODECL || declEval(G.hands[p]).total===0)){
+      var oppS=G.bidLog.some(function(x){ return x.bid && (x.p%2)!==(p%2) && x.s===r.s; });
+      var ptS=G.bidLog.some(function(x){ return x.bid && (x.p%2)===(p%2) && x.p!==p && (x.s===r.s || x.val>=130); });
+      if(oppS && !ptS) return {type:'pass'};
+    }
     /* real games (2125 rounds of 5-18 Nov 2026): the partner bot raising the HUMAN's suit to 130 or more with no declaration of its own
        made it only 47% of the time (47 of 99), and 93% with a declaration. Without a declaration, do not go to 130+ on his suit (the asks for aces keep their rules).
        Exception: the Jack of his suit is real support (1 point, +1 per Ace outside it): those points are always bid, whatever the level (only above 250 nothing is added) */
