@@ -2246,6 +2246,9 @@ function bidLost(){
   var dt=(G.contest.winner===b) ? G.decl[b].total+G.decl[b+2].total : 0;
   var pil=0; [b,b+2].forEach(function(q){ if(G.pil[q]) pil+=20; });
   var need=G.bid.val-dt-pil;
+  /* the bid needs more than the 162 points of the cards (250, or 170+ without declarations): it can only be made by taking ALL the tricks (capot), so it is lost
+     only when the opponents have taken a trick. Before, a 250 was cut after the 4th trick even though the opponents had no trick at all */
+  if(need>162) return G.tricks[o].length>0;
   var opp=G.tricks[o].reduce(function(a,x){ return a+x.pts; },0);
   return opp > 162-need;
 }
