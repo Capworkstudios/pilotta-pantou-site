@@ -2470,12 +2470,13 @@ async function playRound(){
   G.early=false; G.dlost=[0,0,0,0]; G.trump=null; G.bid=null; G.mult=1; G.aceBack=null; G.trick=[]; G.trickNo=0; G.tricks=[[],[]]; G.wins=[]; G.lastW=null; G.decl=null; G.pil=null; G.pilCount=[0,0,0,0]; G.contest=null; G.played=new Set(); G.bidLog=[]; G.suitPick=null; G.legalIds=null; G.winSeat=-1; G.humanAnn=null; G.annVal=20; G.needShow=false; G.shown=false; G.forfeit=false; G.prevTrick=null; G.revealNote=''; G.tenSig=null; G.aceSig=null; G.void=[{},{},{},{}]; G.pvoid=[{},{},{},{}]; G.disc=[{},{},{},{}]; G.dpUsed={}; G.tlog=[]; G.rev=[false,false,false,false]; G.recalc=false; G.ann=[0,0,0,0];
   $('#reveal').hidden=true; $('#reveal').innerHTML='';
   var d=shuffle(newDeck());
-  for(var p=0;p<4;p++){ G.hands[p]=d.slice(p*8,p*8+8); sortHand(G.hands[p],null); }
+  for(var p=0;p<4;p++){ G.hands[p]=d.slice(p*8,p*8+8); }   /* the hands stay in the order they were dealt while the dealing is shown (3, 2, 3); they are sorted when it ends */
   G.deckAll=newDeck();
   G.active=-1;
   var selfD=(G.dealer===G.me && !MP.on);
   waitPanel(selfD ? 'Μοιράζεις.' : nm(G.dealer)+' μοιράζει.');
   await dealAnim();
+  for(var sp=0;sp<4;sp++) sortHand(G.hands[sp],null);
   render();
   waitPanel(selfD ? 'Μοίρασες. Ξεκινούν τα ανοίγματα.' : nm(G.dealer)+' μοίρασε. Ξεκινούν τα ανοίγματα.');
   await sleep(AUTO?900:500);
