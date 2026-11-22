@@ -1,7 +1,7 @@
 """Pilotta Plus from Stripe payments (runs every hour, before the category job, in the public repo pilotta-pantou-site).
 Secrets: STRIPE_KEY = restricted key with read access to Checkout Sessions only; FIREBASE_SA = service account.
 The Payment Links of the app carry the account: client_reference_id = Firebase uid.
-A completed and paid Checkout Session of 2.99 EUR or more gives users/UID/plus = true; a smaller amount is a donation.
+Pilotta Plus is a subscription only (SUB_LINKS). A paid one-time session that is not a subscription or a theme no longer gives Plus (no lifetime Plus any more): under 2.99 EUR it is a donation, otherwise it is left to check by hand.
 The Payment Links of the themes (THEME_LINKS) give users/UID/themes/<theme> = true instead (the Plus-price link only when the account has Plus).
 Every session is handled once (stripe/s/SESSION_ID). Only numbers are printed: the logs of a public repo are public."""
 import json, os, re, sys, time, urllib.parse, urllib.request
@@ -118,14 +118,10 @@ for s in sessions:
             skipped += 1               # no account, another currency, too little paid, or the Plus price without Plus: look at it by hand
         root.update({'stripe/%s/s/%s' % (mode, sid): rec})
         continue
-    if ok_uid and cur == 'eur' and amount >= PLUS_MIN:
-        root.update({'users/%s/plus' % uid: True, 'users/%s/plusLife' % uid: True})   # one payment: for ever
-        rec['plus'] = True
-        plus_n += 1
-    elif cur == 'eur' and amount < PLUS_MIN:
+    if cur == 'eur' and amount < PLUS_MIN:
         gifts += 1
     else:
-        skipped += 1                   # no account on the link, deleted account or another currency: look at it by hand
+        skipped += 1                   # a one-time payment of 2.99 EUR or more (no lifetime Plus any more), no account or another currency: look at it by hand
     root.update({'stripe/%s/s/%s' % (mode, sid): rec})
 root.update({'stripe/%s/last' % mode: newest})
 

@@ -3044,13 +3044,12 @@ function plusApply(){
   var ch=false; EMOLOAD=EMOLOAD.map(function(x,i){ if(plusLocked('emo',x)){ ch=true; var d=EMO_DEF.filter(function(e){ return EMOLOAD.indexOf(e)<0; })[0]; return d||EMO_DEF[i]; } return x; });
   if(ch) store.set('pil.emo',JSON.stringify(EMOLOAD));
 }
-/* Pilotta Plus: a one-time payment (from 2.99 €) through Stripe Payment Links. The link carries the account (client_reference_id = uid);
+/* Pilotta Plus: a subscription (monthly / yearly) through Stripe Payment Links. The link carries the account (client_reference_id = uid);
    the hourly job reads the paid sessions and writes users/UID/plus. Empty links = payments not open yet */
-var PAY={pm:'https://buy.stripe.com/9B66oG1ODfUD6DTgNr0Ny05',py:'https://buy.stripe.com/eVq00i1ODgYH9Q58gV0Ny06',portal:'https://billing.stripe.com/p/login/aFa9AS3WLfUD4vLfJn0Ny00',p299:'https://buy.stripe.com/cNibJ00Kz9wf3rH1Sx0Ny01',p499:'https://buy.stripe.com/aFa9AS3WLfUD4vLfJn0Ny00',open:'https://buy.stripe.com/aFa7sKal937R6DTap30Ny02',site:'https://pilottapantou.com/'};   /* live Stripe links */
+var PAY={pm:'https://buy.stripe.com/9B66oG1ODfUD6DTgNr0Ny05',py:'https://buy.stripe.com/eVq00i1ODgYH9Q58gV0Ny06',portal:'https://billing.stripe.com/p/login/aFa9AS3WLfUD4vLfJn0Ny00',site:'https://pilottapantou.com/'};   /* live Stripe links */
 /* Stripe test mode (sandbox links, test cards only): used only on a device where localStorage pil.paytest = '1',
    for tests with Stripe test cards; everyone else uses the live links above */
 try{ var pt=/[?&]paytest=([01])/.exec(location.search); if(pt){ if(pt[1]==='1') localStorage.setItem('pil.paytest','1'); else localStorage.removeItem('pil.paytest'); } }catch(e){}   /* pilottapantou.com/?paytest=1 turns it on, ?paytest=0 off */
-try{ if(localStorage.getItem('pil.paytest')==='1') PAY=Object.assign(PAY,{p299:'https://buy.stripe.com/test_00w00l0wt1z57aa6HFcs800',p499:'https://buy.stripe.com/test_6oU3cxdjfb9F8eefebcs801',open:'https://buy.stripe.com/test_28EaEZ1Ax0v1gKKgifcs802'}); }catch(e){}
 /* Plus is open on the web site (subscription). In the app it waits for Google Play Billing: there the sheet says «coming soon». PLUS_OPEN=false switches it all off again */
 var PLUS_OPEN=true;
 /* inside the Android app (Google Play) there is no outside payment: no Stripe buttons or links to the site's payment pages; Plus there will be bought with Google Play Billing */
