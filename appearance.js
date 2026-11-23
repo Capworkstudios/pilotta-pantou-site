@@ -339,3 +339,54 @@ var FBV={
     EMOS[p+'win']=[ES('<path d="M7 3.5h10V10a5 5 0 0 1-10 0z" fill="#f2c14e" stroke="#8a5a00" stroke-width="1"/><path d="M7 5.5H3.6c0 4.2 2 5.6 4.2 5.6M17 5.5h3.4c0 4.2-2 5.6-4.2 5.6" fill="none" stroke="#f2c14e" stroke-width="1.7"/><rect x="10.7" y="15" width="2.6" height="3.6" fill="#f2c14e" stroke="#8a5a00" stroke-width=".9"/><rect x="7.5" y="18.6" width="9" height="3" rx="1" fill="#8a5a00"/>'),'Πρωταθλητές!'];
   });
 })();
+
+/* ---------- card faces (shared): the symbols, the figures J Q K, the pips and the joker ---------- */
+var SYM = {H:'♥',D:'♦',S:'♠',C:'♣'};
+/* J, Q, K: double-ended figure inside a frame (own drawing; 7-10 and A keep the plain look) */
+function faceSvg(c){
+  var r=c.r, sy=SYM[c.s], k='#2a2a2a';
+  var body='<path d="M6 60L10 29Q30 21 50 29L54 60Z" fill="#2f55a8" stroke="'+k+'" stroke-width=".5"/><path d="M10 29Q30 21 50 29L48 36Q30 29 12 36Z" fill="#f2c230" stroke="'+k+'" stroke-width=".4"/><path d="M15 60L27 27H33L45 60Z" fill="#d0201b"/><circle cx="30" cy="47" r="6.5" fill="#fff" stroke="'+k+'" stroke-width=".5"/><text x="30" y="50.8" text-anchor="middle" font-size="9.5" fill="currentColor">'+sy+'</text>';
+  var head='<circle cx="30" cy="19" r="7" fill="#f3cfae" stroke="'+k+'" stroke-width=".5"/><circle cx="27.4" cy="18" r=".7" fill="#234"/><circle cx="32.6" cy="18" r=".7" fill="#234"/><path d="M28 22.4Q30 23.6 32 22.4" stroke="#8a3b2f" stroke-width=".6" fill="none"/>';
+  var top;
+  if(r==='K') top=head+'<path d="M23.5 20Q30 33 36.5 20Q36 27 30 29Q24 27 23.5 20Z" fill="#eceff1" stroke="'+k+'" stroke-width=".4"/><path d="M26.5 21Q30 19.6 33.5 21Q30 22.6 26.5 21Z" fill="#eceff1" stroke="'+k+'" stroke-width=".3"/><path d="M22 13V5.5L26 9.5L30 3.5L34 9.5L38 5.5V13Z" fill="#f2c230" stroke="'+k+'" stroke-width=".5"/><rect x="22" y="11.6" width="16" height="2.2" fill="#d0201b" stroke="'+k+'" stroke-width=".3"/><circle cx="30" cy="3.5" r="1" fill="#d0201b"/>';
+  else if(r==='Q') top='<path d="M21.5 20Q20 31 25 33L27 22ZM38.5 20Q40 31 35 33L33 22Z" fill="#d9a441" stroke="'+k+'" stroke-width=".4"/>'+head+'<path d="M22 13Q30 8 38 13L38.5 18Q30 11.5 21.5 18Z" fill="#d9a441" stroke="'+k+'" stroke-width=".4"/><path d="M22.5 11.5L23.5 5.5L26.5 9L30 4L33.5 9L36.5 5.5L37.5 11.5Z" fill="#f2c230" stroke="'+k+'" stroke-width=".5"/><circle cx="23.5" cy="5.2" r=".9" fill="#d0201b"/><circle cx="30" cy="3.7" r=".9" fill="#d0201b"/><circle cx="36.5" cy="5.2" r=".9" fill="#d0201b"/>';
+  else top='<path d="M22.5 20Q21 27 24.5 29L26 21ZM37.5 20Q39 27 35.5 29L34 21Z" fill="#7a4b22" stroke="'+k+'" stroke-width=".4"/>'+head+'<path d="M22.5 15Q24 5 36 7Q40 9 38.5 15Q30 9 22.5 15Z" fill="#d0201b" stroke="'+k+'" stroke-width=".5"/><path d="M36 8Q44 2 46 -1" stroke="#f2c230" stroke-width="1.4" fill="none"/>';
+  var g='<g>'+body+top+'</g>';
+  return '<svg class="fc" viewBox="0 0 60 120" preserveAspectRatio="none" aria-hidden="true">'+g+'<g transform="rotate(180 30 60)">'+g+'</g><line x1="2" y1="60" x2="58" y2="60" stroke="#3b5aa8" stroke-width=".3"/><text x="49" y="110" font-size="17" text-anchor="middle" fill="currentColor" transform="rotate(180 49 104)">'+sy+'</text></svg>';
+}
+/* suit symbols drawn as shapes, so they look the same on every device (font glyphs differ in size between systems) */
+var SUITP={H:'<path d="M50 92C20 68 5 50 5 33 5 18 16 8 29 8c10 0 17 6 21 13 4-7 11-13 21-13 13 0 24 10 24 25 0 17-15 35-45 59z"/>',
+ D:'<path d="M50 2 92 50 50 98 8 50z"/>',
+ S:'<path d="M50 3C50 3 8 36 8 59c0 12 9 21 22 21 7 0 13-3 17-8-1 10-5 17-14 22h34c-9-5-13-12-14-22 4 5 10 8 17 8 13 0 22-9 22-21C92 36 50 3 50 3z"/>',
+ C:'<circle cx="50" cy="27" r="22"/><circle cx="26" cy="63" r="22"/><circle cx="74" cy="63" r="22"/><path d="M50 55c0 20-4 32-15 42h30C54 87 50 75 50 55z"/>'};
+function suitSvg(s){ return '<svg class="sv" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'+SUITP[s]+'</svg>'; }
+/* pips of the 2-10 («Classic cards» layout): shown on the cards of the hand and on the table */
+var PIPS={'2':[[1,.2],[1,.8]],'3':[[1,.2],[1,.5],[1,.8]],'4':[[0,.2],[0,.8],[2,.2],[2,.8]],'5':[[0,.2],[0,.8],[2,.2],[2,.8],[1,.5]],'6':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8]],'7':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35]],'8':[[0,.2],[0,.5],[0,.8],[2,.2],[2,.5],[2,.8],[1,.35],[1,.65]],'9':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.5]],'10':[[0,.18],[0,.39],[0,.61],[0,.82],[2,.18],[2,.39],[2,.61],[2,.82],[1,.285],[1,.715]]};
+function pipsEl(c){
+  var a=PIPS[c.r]; if(!a) return '';
+  return '<span class="pips" aria-hidden="true">'+a.map(function(q){ return '<i'+(q[1]>.5?' class="fl"':'')+' style="left:'+[38,53,68][q[0]]+'%;top:'+(q[1]*100)+'%">'+suitSvg(c.s)+'</i>'; }).join('')+'</span>';
+}
+
+/* the joker: a jester, single-ended. The card is {r:'JK', s:'R'} (red) or {r:'JK', s:'B'} (black); the colour comes from the card's text colour */
+function jokerSvg(){
+  var k='#2a2a2a', st=' stroke="'+k+'" stroke-width=".5"';
+  return '<svg class="fc" viewBox="0 0 60 120" preserveAspectRatio="none" aria-hidden="true">'
+    +'<path d="M18 46C8 40 6 28 10 17C14 27 22 31 30 33Z" fill="currentColor"'+st+'/>'
+    +'<path d="M42 46C52 40 54 28 50 17C46 27 38 31 30 33Z" fill="currentColor"'+st+'/>'
+    +'<path d="M22 46C22 32 28 22 30 9C32 22 38 32 38 46Z" fill="currentColor"'+st+'/>'
+    +'<circle cx="10" cy="16" r="2.3" fill="#f2c230"'+st+'/><circle cx="50" cy="16" r="2.3" fill="#f2c230"'+st+'/><circle cx="30" cy="8" r="2.3" fill="#f2c230"'+st+'/>'
+    +'<rect x="18" y="44" width="24" height="5" fill="#f2c230"'+st+'/>'
+    +'<circle cx="30" cy="60" r="11" fill="#f3cfae"'+st+'/><circle cx="26" cy="58" r="1" fill="#234"/><circle cx="34" cy="58" r="1" fill="#234"/><path d="M25 65Q30 69 35 65" stroke="#8a3b2f" stroke-width=".7" fill="none"/>'
+    +'<path d="M12 76L18 86L24 76L30 86L36 76L42 86L48 76Z" fill="#f2c230"'+st+'/>'
+    +'<path d="M16 86H44L48 110H12Z" fill="currentColor"'+st+'/>'
+    +'<path d="M30 92L32.2 97.2L37.8 97.6L33.5 101.2L34.9 106.6L30 103.6L25.1 106.6L26.5 101.2L22.2 97.6L27.8 97.2Z" fill="#fff"/>'
+    +'<text x="30" y="118" text-anchor="middle" font-size="7" font-weight="700" font-family="sans-serif" fill="currentColor">JOKER</text></svg>';
+}
+/* the inside of a card: rank in the corner, then the big suit (layout 'classic') or, in the full layout (full=true), the figure / the pips / the big suit.
+   c = {r,s}; r is 2-10, J, Q, K, A, or JK (joker). No game rules in here. */
+function cardInner(c,full){
+  var r=c.r, jk=(r==='JK'), fig=(r==='J'||r==='Q'||r==='K');
+  if(!full) return '<span class="rk">'+(jk?'\u2605':r)+'</span><span class="st">'+(jk?'\u2605':suitSvg(c.s))+'</span>';
+  return '<span class="rk'+(r==='10'?' r10':'')+'">'+(jk?'\u2605':r+'<span class="rs" aria-hidden="true">'+suitSvg(c.s)+'</span>')+'</span>'
+    +(jk ? jokerSvg() : fig ? faceSvg(c) : '<span class="st">'+suitSvg(c.s)+'</span>'+pipsEl(c));
+}
