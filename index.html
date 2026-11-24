@@ -988,6 +988,18 @@ function cost(c){ return cpts(c,G.trump)*10 + (c.s===G.trump ? 500+tStr(c) : pSt
 function minBy(arr,f){ return arr.reduce(function(b,x){ return (b===null || f(x)<f(b)) ? x : b; }, null); }
 function maxBy(arr,f){ return arr.reduce(function(b,x){ return (b===null || f(x)>f(b)) ? x : b; }, null); }
 function trumpCount(hand){ return hand.filter(function(c){ return c.s===G.trump; }).length; }
+/* free discard (no card of the led suit and no trump to cut with): never throw a sure trick (a master card, e.g. the 10 once the Ace is gone),
+   and keep the suits where I hold the Ace. Returns {pool, ace}: ace=true means only cards of my Ace suits are left (throw them from the lowest up).
+   Any other situation (following suit, cutting) returns the cards unchanged. */
+function discardPool(p,hand,L){
+  var led=G.trick.length ? G.trick[0].c.s : null, tr=G.trump;
+  if(led===null || !L.length || !L.every(function(c){ return c.s!==led && c.s!==tr; })) return {pool:L, ace:false};
+  var nm=L.filter(function(c){ return !isMaster(c,p); });
+  var pool=nm.length ? nm : L;
+  var na=pool.filter(function(c){ return !has(hand,'A',c.s); });
+  if(na.length) return {pool:na, ace:false};
+  return {pool:pool, ace:nm.length>0 && pool.some(function(c){ return has(hand,'A',c.s); })};
+}
 function botPick(p,hand,L){
   var tr=G.trump, trick=G.trick;
   if(L.length===1) return L[0];
@@ -1138,7 +1150,7 @@ function botPick(p,hand,L){
       if(keepA.length && (unT===0 || (ourT && unT<=2))) return minBy(keepA,pStr);
     }
     if(last || (isMaster(wc,p) && !cutRisk)){
-      var s10=L.filter(function(c){ return c.r==='10' && c.s!==tr && c.s!==led && hand.filter(function(h){ return h.s===c.s; }).length===1; });
+      var s10=L.filter(function(c){ return c.r==='10' && c.s!==tr && c.s!==led && hand.filter(function(h){ return h.s===c.s; }).length===1 && !isMaster(c,p); });
       if(s10.length) return s10[0];
     }
     /* our trumps, free discard on the partner's trick: go down (K, Q, 9) without the ace of that suit, go up (9, J, K) with it */
@@ -1166,10 +1178,16 @@ function botPick(p,hand,L){
     }
     if(last || (isMaster(wc,p) && !cutRisk)){
       /* loading points on the partner's trick: do not spend a sure-winning trump (the Jack, or the 9 once the Jack is out) when other cards can carry the points, keep it for later */
+      var dp=discardPool(p,hand,L);
+      if(dp.pool!==L){
+        /* only my Ace suits are left: throw from the lowest card up. Otherwise load the most points on the partner's trick */
+        if(dp.ace) return minBy(dp.pool,cost);
+        return maxBy(dp.pool,function(c){ return cpts(c,tr)*100 - (c.s===tr?tStr(c):pStr(c)); });
+      }
       var Lm=L.filter(function(c){ return !(c.s===tr && isMaster(c,p)); });
       return maxBy(Lm.length ? Lm : L,function(c){ return cpts(c,tr)*100 - (c.s===tr?tStr(c):pStr(c)); });
     }
-    return minBy(L,cost);
+    return minBy(discardPool(p,hand,L).pool,cost);
   }
   /* last to play, holding the ace and small cards of the suit while the 10 is still out: give the trick away so the ace takes the 10 later.
      Not while my team has no trick yet: the opponents could take every trick (capot), so take it with the Ace */
@@ -1208,7 +1226,7 @@ function botPick(p,hand,L){
     }
     return cheap;
   }
-  return minBy(L,cost);
+  return minBy(discardPool(p,hand,L).pool,cost);
 }
 /* last two tricks: simulate random deals of the unseen cards and choose the card that wins the most points (last trick = +10) */
 function simPlay(hand,trick,tr,q){
