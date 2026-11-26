@@ -544,12 +544,11 @@ function setZoom(i){ ZI=Math.max(0,Math.min(ZSTEPS.length-1,i)); var v=ZSTEPS[ZI
 $('#zOut').addEventListener('click',function(){ setZoom(ZI+1); });
 $('#zIn').addEventListener('click',function(){ setZoom(ZI-1); });
 setZoom(ZI);
-/* keep the page scroll: the page never gets shorter than its tallest state, so a new round can't clamp scrollY back to the top */
+/* keep the page scroll: the page never gets shorter than its tallest state, so a new round can't clamp scrollY back to the top. The height is kept in unzoomed CSS px and is NOT reset by the zoom buttons, so the table returns to the same size at 100% */
 (function(){ var app=$('#app'), mx=0, ro;
   function reset(){ mx=0; app.style.minHeight=''; }
   window.addEventListener('resize',reset); window.addEventListener('orientationchange',reset);
-  var zo=$('#zOut'), zi=$('#zIn'); [zo,zi].forEach(function(b){ b.addEventListener('click',reset); });
-  if(typeof ResizeObserver==='function'){ ro=new ResizeObserver(function(){ var h=app.getBoundingClientRect().height; if(h>mx+1){ mx=h; app.style.minHeight=Math.ceil(h/(parseFloat(app.style.zoom)||1))+'px'; } }); ro.observe(app); }
+  if(typeof ResizeObserver==='function'){ ro=new ResizeObserver(function(){ var h=app.getBoundingClientRect().height/(parseFloat(app.style.zoom)||1); if(h>mx+1){ mx=h; app.style.minHeight=Math.ceil(h)+'px'; } }); ro.observe(app); }
 })();
 
 /* ---------- constants ---------- */
