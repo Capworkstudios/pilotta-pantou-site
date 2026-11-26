@@ -1728,7 +1728,7 @@ function confetti(){
       a.onfinish=function(){ d.remove(); }; })(d);
   }
 }
-function openSheet(html,bind){ var ov=$('#ov'), sh=$('#sheet'); sh.className='sheet'; sh.innerHTML=html; if(document.body.classList.contains('page')){ void sh.offsetWidth; sh.classList.add('sx'); } ov.hidden=false; ov.scrollTop=0; if(bind) bind(sh); sheetFx(sh); var b=sh.querySelector('button'); if(b) b.focus(); }
+function openSheet(html,bind){ var ov=$('#ov'), sh=$('#sheet'); sh.__lob=null; sh.className='sheet'; sh.innerHTML=html; if(document.body.classList.contains('page')){ void sh.offsetWidth; sh.classList.add('sx'); } ov.hidden=false; ov.scrollTop=0; if(bind) bind(sh); sheetFx(sh); var b=sh.querySelector('button'); if(b) b.focus(); }
 /* the phone's Back button (and the browser's): go back inside the game, not to the previous web page.
    A history entry is kept as a trap; on Back the open window's own back button is pressed (Back, Close, Cancel, Not now, Menu, Skip),
    during a game the game menu opens, and on the main menu Back leaves the site (or closes the app) as usual. */
@@ -5109,7 +5109,10 @@ function mpLobby(name,onStart,back){
         +(MP.rmGuest && meta.status!=='lobby' ? '<p class="hint">Ο οικοδεσπότης δεν έχει πατήσει ακόμα Ρεβάνς. Αν έφυγε, θα το δεις εδώ.</p>' : '')
         +'<p class="hint">Περιμένουμε τον οικοδεσπότη να ξεκινήσει. Στόχος: '+(meta.target||151)+'.</p><div class="row"><button class="btn" id="lBack" type="button">Φύγε</button></div>';
     }
+    /* the table screen is drawn again on every message and every poll: if nothing changed, leave it alone (no flicker, no animation restart) */
+    { var sh0=$('#sheet'); if(!$('#ov').hidden && sh0.__lob===h) return; }
     openSheet(h,function(sh){
+      sh.__lob=h;
       sh.querySelectorAll('[data-sit]').forEach(function(b){ b.addEventListener('click',function(){ var i=+b.dataset.sit, old=mySeat();
         T.claim(mpBase()+'seat'+i,{uid:MP.uid,name:name,av:myAv(),r:myRating(),bd:myBadgeDesc()}).then(function(ok){ if(ok){ if(old>=0) T.remove(mpBase()+'seat'+old); if(!MP.host) T.remove(mpBase()+'join/'+MP.uid); } }); }); });
       sh.querySelectorAll('[data-rm]').forEach(function(b){ b.addEventListener('click',function(){ T.remove(mpBase()+'seat'+b.dataset.rm); }); });
