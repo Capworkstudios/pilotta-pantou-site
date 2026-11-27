@@ -85,6 +85,18 @@ if live_n != live_c:
     db.reference('live/n').set(live_c)
 print('online counter: %s corrected to %d' % (live_n, live_c) if live_n != live_c else 'online counter: %d (correct)' % live_c)
 
+# The number shown in the app is the number of entries in live/on (one per open app, removed by the server when the app
+# disconnects). An entry whose removal was lost stays as a "ghost player" for ever. Every open app also has a live/cu/PLAYER/<same id>,
+# so an entry of live/on with no match in live/cu is a leftover and is removed. live/on is read first and live/cu second, and the app
+# writes live/cu before live/on, so an app that connects in the meantime is never taken for a leftover. Only numbers are printed.
+on_ids = set((db.reference('live/on').get(shallow=True) or {}).keys())
+cu_all = db.reference('live/cu').get() or {}
+cu_ids = set(k for v in cu_all.values() if isinstance(v, dict) for k in v)
+ghosts = sorted(on_ids - cu_ids)
+if ghosts:
+    db.reference('live/on').update({k: None for k in ghosts})
+print('online entries: %d, leftovers removed: %d' % (len(on_ids), len(ghosts)))
+
 # 1. limits and categories
 elos = sorted((int(stats[u].get('elo') or 1000) for u in active), reverse=True)
 n = len(elos)
