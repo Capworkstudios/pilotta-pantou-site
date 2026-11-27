@@ -23,8 +23,18 @@ a{color:var(--accent)}
 section[lang]{display:none}
 section[lang].on{display:block}
 .foot{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);font-size:14px;display:flex;flex-wrap:wrap;gap:6px 14px}
-.pn{margin:14px 0 0;padding:10px 0 0;border-top:1px solid var(--line);font-size:14px;line-height:2}.pn b{display:block}.pn a{white-space:nowrap}
-.pn{margin:14px 0 0;padding:10px 0 0;border-top:1px solid var(--line);font-size:14px;line-height:2}.pn b{display:block}.pn a{white-space:nowrap}
+.pn{margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line);font-size:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 22px;align-items:start}
+.pn>a{padding:2px 0}
+.more summary{cursor:pointer;color:var(--accent);padding:2px 0;list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.more summary::after{content:" \25BE"}
+.more[open] summary::after{content:" \25B4"}
+.mc{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 28px;margin-top:8px}
+.mc b{display:block;margin-bottom:2px}
+.mc a{display:block;padding:3px 0}
+.ra{margin:30px 0 0;padding:12px 0 0;border-top:1px solid var(--line);font-size:15px}
+.ra b{display:block;margin-bottom:4px}
+.ra a{display:block;padding:3px 0}
 </style>
 </head>
 <body>
@@ -65,7 +75,7 @@ section[lang].on{display:block}
 <h2>6. Δηλώσεις και πιλόττα</h2>
 <ul>
 <li>Μόνο η ομάδα με την υψηλότερη δήλωση παίρνει πόντους, οπότε μια δήλωση 20 δεν αξίζει αν ο αντίπαλος έχει 50.</li>
-<li>Αν έχεις Ρήγα και Ντάμα στα κόζια, μην τα ρίξεις νωρίς: κράτησέ τα για να πάρεις τους 20 πόντους της πιλόττας.</li>
+<li>Ρήγας και Ντάμα στα κόζια στο ίδιο χέρι είναι πιλόττα (20 πόντοι). Μετράει πάντα, δεν δηλώνεται και την ανακοινώνεις όταν ρίχνεις τα φύλλα. Δες και τον οδηγό για τις <a href="declarations.html#el">δηλώσεις</a>.</li>
 </ul>
 
 <h2>7. Η τελευταία μπάζα αξίζει 10</h2>
@@ -73,7 +83,7 @@ section[lang].on{display:block}
 
 <h2>Εξάσκηση</h2>
 <p>Το πιο γρήγορο είναι να παίξεις. Στο παιχνίδι μπορείς να δοκιμάσεις όλα αυτά ενάντια σε bots, χωρίς πίεση, και η ξενάγηση σου δείχνει βήμα βήμα τα βασικά. <a href="./">Παίξε τώρα</a>.</p>
-<nav class="pn" aria-label="Οδηγοί και πληροφορίες"><b>Οδηγοί και πληροφορίες</b><a href="guide.html#el">Πώς παίζεται</a> · <a href="strategy.html#el">Στρατηγική για αρχάριους</a> · <a href="history.html#el">Ιστορία της Πιλόττας</a> · <a href="faq.html#el">Συχνές ερωτήσεις</a> · <a href="about.html#el">Σχετικά με εμάς</a> · <a href="contact.html#el">Επικοινωνία</a> · <a href="privacy.html#el">Απόρρητο</a> · <a href="terms.html#el">Όροι χρήσης</a> · <a href="refunds.html#el">Επιστροφές</a> · <a href="./">Παίξε</a></nav>
+<nav class="pn" aria-label="Οδηγοί και πληροφορίες"><a href="./">Παίξε</a><details class="more"><summary>Περισσότερα</summary><div class="mc"><div><b>Άρθρα</b><a href="guide.html#el">Πώς παίζεται η πιλόττα</a><a href="strategy.html#el">Στρατηγική για αρχάριους</a><a href="declarations.html#el">Οι δηλώσεις</a><a href="bidding.html#el">Τα ανοίγματα</a><a href="mistakes.html#el">8 συνηθισμένα λάθη</a><a href="history.html#el">Ιστορία της Πιλόττας</a></div><div><b>Πληροφορίες</b><a href="faq.html#el">Συχνές ερωτήσεις</a><a href="about.html#el">Σχετικά με εμάς</a><a href="contact.html#el">Επικοινωνία</a><a href="privacy.html#el">Απόρρητο</a><a href="terms.html#el">Όροι χρήσης</a><a href="refunds.html#el">Επιστροφές</a></div></div></details></nav>
 </section>
 
 <section lang="en" id="en">
@@ -110,7 +120,7 @@ section[lang].on{display:block}
 <h2>6. Declarations and pilotta</h2>
 <ul>
 <li>Only the team with the highest declaration scores, so a declaration of 20 is worth nothing if the opponents hold 50.</li>
-<li>If you hold the King and Queen of trumps, do not play them early: keep them so you can collect the 20 points of pilotta.</li>
+<li>The King and Queen of trumps in the same hand are pilotta (20 points). It always counts, you do not declare it, and you call it when you play the cards. See also the guide to <a href="declarations.html#en">declarations</a>.</li>
 </ul>
 
 <h2>7. The last trick is worth 10</h2>
@@ -118,7 +128,7 @@ section[lang].on{display:block}
 
 <h2>Practice</h2>
 <p>The fastest way to learn is to play. In the game you can try all of this against bots with no pressure, and the tour walks you through the basics step by step. <a href="./">Play now</a>.</p>
-<nav class="pn" aria-label="Guides and information"><b>Guides and information</b><a href="guide.html#en">How to play</a> · <a href="strategy.html#en">Beginner strategy</a> · <a href="history.html#en">History of Pilotta</a> · <a href="faq.html#en">FAQ</a> · <a href="about.html#en">About us</a> · <a href="contact.html#en">Contact</a> · <a href="privacy.html#en">Privacy</a> · <a href="terms.html#en">Terms of use</a> · <a href="refunds.html#en">Refunds</a> · <a href="./">Play</a></nav>
+<nav class="pn" aria-label="Guides and information"><a href="./">Play</a><details class="more"><summary>More</summary><div class="mc"><div><b>Articles</b><a href="guide.html#en">How to play Pilotta</a><a href="strategy.html#en">Beginner strategy</a><a href="declarations.html#en">Declarations</a><a href="bidding.html#en">Bidding</a><a href="mistakes.html#en">8 common mistakes</a><a href="history.html#en">History of Pilotta</a></div><div><b>Information</b><a href="faq.html#en">FAQ</a><a href="about.html#en">About us</a><a href="contact.html#en">Contact</a><a href="privacy.html#en">Privacy</a><a href="terms.html#en">Terms of use</a><a href="refunds.html#en">Refunds</a></div></div></details></nav>
 </section>
 
 <script>
