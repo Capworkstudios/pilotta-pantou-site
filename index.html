@@ -2600,7 +2600,10 @@ function onlineStart(){
     db.ref('.info/connected').on('value',ONLINE.wconn);
     db.ref('.info/connected').on('value',ONLINE.cconn);   
     ONLINE.val=function(s){ ONLINE.n=Math.max(AWAY.on?0:1,s.numChildren()); honRefresh(); };
-    ref.on('value',ONLINE.val,function(){ ONLINE.n=0; honRefresh(); });
+    /* the number is the number of PLAYERS: live/cu has one child per player (UID), whatever the number of his open devices. If the rules do not allow reading live/cu yet, it falls back to counting the open apps in live/on */
+    ONLINE.cuRef=db.ref('live/cu'); ONLINE.cuOk=false;
+    ONLINE.cuVal=function(s){ ONLINE.cuOk=true; ONLINE.val(s); };
+    ONLINE.cuRef.on('value',ONLINE.cuVal,function(){ ONLINE.cuOk=false; ref.on('value',ONLINE.val,function(){ ONLINE.n=0; honRefresh(); }); });
     /* my presence (read only by my friends), my friends' presence, and invitations to tables */
     /* one entry per device (pres/ME/DEVICE): a second device, or a device that was signed out, does not hide the one still open */
     var me=ACCT.user.uid, pres=db.ref('pres/'+me+'/'+DEVID);
@@ -2632,7 +2635,7 @@ function onlineStop(){
   try{ var db0=window.firebase.database(); db0.ref('.info/connected').off('value',ONLINE.pconn); if(ONLINE.pres){ ONLINE.pres.onDisconnect().cancel(); ONLINE.pres.remove().catch(function(){}); }
     if(FRON.ref) FRON.ref.off('value',FRON.fn); Object.keys(FRON.subs).forEach(function(f){ FRON.subs[f].off('value'); }); FRON.subs={}; FRON.on={}; FRON.aw={}; FRON.pl={}; fronRefresh();
     if(INV.ref) INV.ref.off('child_added',INV.fn); if(UNR.mref) UNR.mref.off('value',UNR.mfn); Object.keys(UNR.q).forEach(unrDrop); UNR.mk={}; unrRefresh(); }catch(e){}
-  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.cconn); db.ref('.info/connected').off('value',ONLINE.wconn); if(ONLINE.wref){ ONLINE.wref.onDisconnect().cancel(); ONLINE.wref.remove().catch(function(){}); } if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); } if(ONLINE.ref) ONLINE.ref.off('value',ONLINE.val); if(ONLINE.oref){ ONLINE.oref.onDisconnect().cancel(); ONLINE.oref.remove().catch(function(){}); } }catch(e){}
+  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.cconn); db.ref('.info/connected').off('value',ONLINE.wconn); if(ONLINE.wref){ ONLINE.wref.onDisconnect().cancel(); ONLINE.wref.remove().catch(function(){}); } if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); } if(ONLINE.ref) ONLINE.ref.off('value',ONLINE.val); if(ONLINE.cuRef) ONLINE.cuRef.off('value',ONLINE.cuVal); if(ONLINE.oref){ ONLINE.oref.onDisconnect().cancel(); ONLINE.oref.remove().catch(function(){}); } }catch(e){}
   ONLINE.n=0; honRefresh();
 }
 /* the list of the players who are online (opens from the counter in the main menu): name, tap for the profile */
