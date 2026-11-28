@@ -2630,13 +2630,16 @@ function onlineStart(){
     INV.ref.on('child_added',INV.fn,function(){});
   }).catch(function(){ ONLINE.on=false; });
 }
+/* returns a promise that is done when the entries of this app (live/on, live/cu, live/who, pres) are removed: the sign-out must wait for it, because after it the rules no longer allow the removal and the entries would stay for ever as ghost players */
 function onlineStop(){
-  if(!ONLINE.on) return; ONLINE.on=false; clearTimeout(AWAY.t); AWAY.on=false; clearInterval(ONLINE.plIv); try{ if(ONLINE.plRef){ ONLINE.plRef.onDisconnect().cancel(); ONLINE.plRef.remove().catch(function(){}); } }catch(e){} ONLINE.pl=false;
-  try{ var db0=window.firebase.database(); db0.ref('.info/connected').off('value',ONLINE.pconn); if(ONLINE.pres){ ONLINE.pres.onDisconnect().cancel(); ONLINE.pres.remove().catch(function(){}); }
+  var RM=[]; var W=function(r){ RM.push(r.catch(function(){})); };
+  if(!ONLINE.on) return Promise.resolve(); ONLINE.on=false; clearTimeout(AWAY.t); AWAY.on=false; clearInterval(ONLINE.plIv); try{ if(ONLINE.plRef){ ONLINE.plRef.onDisconnect().cancel(); W(ONLINE.plRef.remove()); } }catch(e){} ONLINE.pl=false;
+  try{ var db0=window.firebase.database(); db0.ref('.info/connected').off('value',ONLINE.pconn); if(ONLINE.pres){ ONLINE.pres.onDisconnect().cancel(); W(ONLINE.pres.remove()); }
     if(FRON.ref) FRON.ref.off('value',FRON.fn); Object.keys(FRON.subs).forEach(function(f){ FRON.subs[f].off('value'); }); FRON.subs={}; FRON.on={}; FRON.aw={}; FRON.pl={}; fronRefresh();
     if(INV.ref) INV.ref.off('child_added',INV.fn); if(UNR.mref) UNR.mref.off('value',UNR.mfn); Object.keys(UNR.q).forEach(unrDrop); UNR.mk={}; unrRefresh(); }catch(e){}
-  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.cconn); db.ref('.info/connected').off('value',ONLINE.wconn); if(ONLINE.wref){ ONLINE.wref.onDisconnect().cancel(); ONLINE.wref.remove().catch(function(){}); } if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); ONLINE.cref.remove().catch(function(){}); } if(ONLINE.ref) ONLINE.ref.off('value',ONLINE.val); if(ONLINE.cuRef) ONLINE.cuRef.off('value',ONLINE.cuVal); if(ONLINE.oref){ ONLINE.oref.onDisconnect().cancel(); ONLINE.oref.remove().catch(function(){}); } }catch(e){}
+  try{ var fb=window.firebase, db=fb.database(); db.ref('.info/connected').off('value',ONLINE.cconn); db.ref('.info/connected').off('value',ONLINE.wconn); if(ONLINE.wref){ ONLINE.wref.onDisconnect().cancel(); W(ONLINE.wref.remove()); } if(ONLINE.cref){ ONLINE.cref.onDisconnect().cancel(); W(ONLINE.cref.remove()); } if(ONLINE.ref) ONLINE.ref.off('value',ONLINE.val); if(ONLINE.cuRef) ONLINE.cuRef.off('value',ONLINE.cuVal); if(ONLINE.oref){ ONLINE.oref.onDisconnect().cancel(); W(ONLINE.oref.remove()); } }catch(e){}
   ONLINE.n=0; honRefresh();
+  return Promise.all(RM);
 }
 /* the list of the players who are online (opens from the counter in the main menu): name, tap for the profile */
 function showOnlineList(back){
@@ -3453,10 +3456,10 @@ function showGoogleName(g,o){
   }
   draw();
 }
-async function acctSignOut(){ onlineStop(); try{ await acctFb().signOut(); }catch(e){} acctSave(null); }
+async function acctSignOut(){ try{ await Promise.race([onlineStop(), new Promise(function(r){ setTimeout(r,2500); })]); }catch(e){} try{ await acctFb().signOut(); }catch(e){} acctSave(null); }
 async function acctDelete(pw){
   var T=acctT(), A=acctFb(), me=ACCT.user; if(!me) return;
-  onlineStop();
+  try{ await Promise.race([onlineStop(), new Promise(function(r){ setTimeout(r,2500); })]); }catch(e){}
   if(me.provider==='google' && A.removeGoogle) await A.removeGoogle(); else await A.removeUser(me.email,pw);
   try{ await stWipe(); }catch(e){}
   try{ await T.remove('users/'+me.uid); }catch(e){}
